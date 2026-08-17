@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+/* --------------------------------------------------------------------
+ * Токены портала. Спокойная деловая палитра: документ, который не стыдно
+ * показать заказчику и в котором статусы читаются с одного взгляда.
+ * ------------------------------------------------------------------ */
+
+:root {
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-sunken: #f6f7f9;
+  --border: #e3e6ea;
+  --border-strong: #cdd3da;
+  --text: #14181d;
+  --text-muted: #5c6672;
+  --text-faint: #8a939e;
+  --accent: #2f5fd0;
+  --accent-soft: #eaf0fd;
+  --accent-text: #1f47a8;
+
+  --blocker: #c0392f;
+  --blocker-soft: #fdeceb;
+  --important: #9a6205;
+  --important-soft: #fdf3e0;
+  --later: #5c6672;
+  --later-soft: #f0f2f5;
+  --done: #1f7a52;
+  --done-soft: #e6f5ee;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface: #14171c;
+    --surface-raised: #1b1f26;
+    --surface-sunken: #101317;
+    --border: #2a2f38;
+    --border-strong: #3b424e;
+    --text: #e8eaee;
+    --text-muted: #9aa3b0;
+    --text-faint: #6f7885;
+    --accent: #7ba1f5;
+    --accent-soft: #1b2740;
+    --accent-text: #a8c1fb;
+
+    --blocker: #f08a80;
+    --blocker-soft: #33201e;
+    --important: #e0b25c;
+    --important-soft: #302819;
+    --later: #9aa3b0;
+    --later-soft: #232830;
+    --done: #6ec79b;
+    --done-soft: #162c22;
+  }
+}
+
+@theme inline {
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-ink: var(--text);
+  --color-ink-muted: var(--text-muted);
+  --color-ink-faint: var(--text-faint);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-text: var(--accent-text);
+  --color-blocker: var(--blocker);
+  --color-blocker-soft: var(--blocker-soft);
+  --color-important: var(--important);
+  --color-important-soft: var(--important-soft);
+  --color-later: var(--later);
+  --color-later-soft: var(--later-soft);
+  --color-done: var(--done);
+  --color-done-soft: var(--done-soft);
+  --font-sans: var(--font-sans-stack);
+  --font-mono: var(--font-mono-stack);
+}
+
+html {
+  --font-sans-stack: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono-stack: var(--font-mono-face), ui-monospace, SFMono-Regular, "SF Mono", Menlo,
+    Consolas, monospace;
+}
+
+body {
+  background: var(--surface-sunken);
+  color: var(--text);
+  font-family: var(--font-sans-stack);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Ссылки внутри пользовательского текста (ответы, описания вопросов). */
+.prose-portal {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.65;
+}
+
+/* Широкие таблицы прокручиваются внутри себя, а не растягивают страницу. */
+.table-scroll {
+  overflow-x: auto;
+}

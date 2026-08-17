@@ -161,47 +161,64 @@ values ('ivanov@company.ru', 'Иван Иванов', 'client', 'ООО «Ком
 Подойдёт, если данные должны оставаться на вашей инфраструктуре — например,
 из-за требований к хранению персональных данных.
 
-Нужен сервер с Docker и Docker Compose.
+**Что нужно:** сервер с Ubuntu 22.04 или 24.04, минимум 2 ГБ памяти
+(рекомендуется 4 ГБ) и 20 ГБ диска, плюс домен с A-записью на его адрес.
+
+### Установка одной командой
+
+Подключитесь к серверу по SSH под root и выполните:
 
 ```bash
-git clone https://github.com/HPaceDev/altschool.git portal
-cd portal
+bash <(curl -fsSL https://raw.githubusercontent.com/HPaceDev/altschool/claude/large-system-design-76o4o7/scripts/install-server.sh)
+```
+
+Скрипт спросит домен и вашу почту, после чего сам поставит Docker, заберёт
+исходники, сгенерирует пароли, поднимет приложение с базой и выпустит
+сертификат HTTPS. Повторный запуск безопасен: готовое переиспользуется,
+пароли не перегенерируются.
+
+На сервере с памятью меньше 3 ГБ скрипт добавит файл подкачки — сборка
+Next.js требовательна к памяти и без него может прерваться.
+
+### Или вручную
+
+```bash
+git clone -b claude/large-system-design-76o4o7 \
+  https://github.com/HPaceDev/altschool.git /opt/portal
+cd /opt/portal
 
 cat > .env <<'ENV'
 POSTGRES_PASSWORD=придумайте-длинный-пароль
 AUTH_SECRET=вставьте-вывод-openssl-rand-hex-32
+DOMAIN=portal.вашдомен.ru
 APP_URL=https://portal.вашдомен.ru
 OWNER_EMAIL=вы@вашдомен.ru
 ENV
 
-docker compose up -d --build
+docker compose --profile tls up -d --build
 ```
 
-Всё. База создаётся и наполняется автоматически из `drizzle/bootstrap.sql` при
-первом запуске — миграции отдельно накатывать не нужно. Приложение слушает
-`127.0.0.1:3000`; наружу его отдаёт nginx или Caddy, они же терминируют HTTPS.
+База создаётся и наполняется автоматически из `drizzle/bootstrap.sql` при
+первом запуске — миграции отдельно накатывать не нужно.
 
-Пример для Caddy — HTTPS-сертификат он получит сам:
-
-```
-portal.вашдомен.ru {
-    reverse_proxy 127.0.0.1:3000
-}
-```
+Профиль `tls` поднимает Caddy, который сам получает и продлевает сертификат
+Let's Encrypt. Если на сервере уже настроен nginx, запускайте без профиля —
+приложение будет слушать `127.0.0.1:3000`, проксируйте на него.
 
 Порт базы наружу не публикуется: она доступна только контейнеру приложения.
-Данные лежат в томе `db-data` и переживают пересборку образа.
+Данные лежат в томе `db-data` и переживают пересборку образа, выданные
+сертификаты — в томе `caddy-data`.
 
 Обновление после изменений в коде:
 
 ```bash
-git pull && docker compose up -d --build
+cd /opt/portal && git pull && docker compose --profile tls up -d --build
 ```
 
 Резервная копия базы:
 
 ```bash
-docker compose exec db pg_dump -U portal portal | gzip > backup-$(date +%F).sql.gz
+cd /opt/portal && docker compose exec db pg_dump -U portal portal | gzip > backup-$(date +%F).sql.gz
 ```
 
 ### Роль приложения

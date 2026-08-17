@@ -1,0 +1,26 @@
+# Обратный прокси перед порталом. Caddy сам получает и продлевает
+# сертификат Let's Encrypt, поэтому настраивать HTTPS вручную не нужно.
+#
+# Домен подставляется из переменной DOMAIN в файле .env.
+
+{$DOMAIN} {
+	reverse_proxy app:3000
+
+	encode zstd gzip
+
+	header {
+		# Портал закрытый и не предназначен для индексации.
+		X-Robots-Tag "noindex, nofollow"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "same-origin"
+		-Server
+	}
+
+	log {
+		output file /var/log/caddy/access.log {
+			roll_size 10MiB
+			roll_keep 5
+		}
+	}
+}

@@ -37,9 +37,35 @@ services:
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       MAIL_FROM: ${MAIL_FROM:-}
     ports:
-      # Наружу отдаётся только localhost сервера: HTTPS терминируется
-      # nginx или Caddy, они же проксируют на этот порт.
+      # Только localhost сервера: снаружи портал доступен через Caddy,
+      # а этот порт удобен для проверки и отладки прямо на машине.
       - "127.0.0.1:3000:3000"
+
+  # HTTPS с автоматическим сертификатом. Включается профилем:
+  #   docker compose --profile tls up -d
+  # Без профиля поднимаются только приложение и база — удобно, когда
+  # сертификатами занимается уже настроенный на сервере nginx.
+  caddy:
+    image: caddy:2-alpine
+    profiles: ["tls"]
+    restart: unless-stopped
+    depends_on:
+      - app
+    environment:
+      DOMAIN: ${DOMAIN:?укажите домен портала в файле .env}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Выданные сертификаты переживают перезапуск: без этого тома Let's
+      # Encrypt быстро упрётся в ограничение на число выдач для домена.
+      - caddy-data:/data
+      - caddy-config:/config
+      - caddy-logs:/var/log/caddy
 
 volumes:
   db-data:
+  caddy-data:
+  caddy-config:
+  caddy-logs:

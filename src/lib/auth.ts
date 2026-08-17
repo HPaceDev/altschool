@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { and, eq, gt, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { magicLinks, sessions, users } from "@/db/schema";
-import { getRequestContext } from "./request-context";
+import { getBaseUrl, getRequestContext } from "./request-context";
 
 export const SESSION_COOKIE = "portal_session";
 
@@ -77,8 +77,7 @@ export async function requestLoginLink(rawEmail: string): Promise<LoginRequestRe
     expiresAt: minutesFromNow(MAGIC_LINK_TTL_MINUTES),
   });
 
-  const base = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? "http://localhost:3000";
-  const magicUrl = `${base}/api/auth/verify?token=${token}`;
+  const magicUrl = `${await getBaseUrl()}/api/auth/verify?token=${token}`;
 
   const delivered = await deliverLoginEmail(email, magicUrl);
   return { ok: true, magicUrl, delivered };

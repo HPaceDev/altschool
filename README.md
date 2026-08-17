@@ -86,8 +86,15 @@ node e2e/portal.mjs   # сквозной прогон в браузере (ну�
    хватает с запасом. Регион выбирайте ближе к пользователям; если в системе
    будут персональные данные граждан РФ, разместите базу у российского провайдера
    (Yandex Cloud, Selectel) — Supabase в этом случае не подходит.
-2. **Project Settings → Database → Connection string → URI**, режим **Session**.
+2. **Project Settings → Database → Connection string → URI**, режим **Session
+   pooler** (адрес вида `aws-0-<регион>.pooler.supabase.com`).
+
+   Именно пулер, а не прямое подключение к `db.<проект>.supabase.co`: прямой
+   адрес отвечает только по IPv6, которого у Vercel нет, и приложение молча
+   не достучится до базы.
+
 3. Подставьте пароль проекта вместо `[YOUR-PASSWORD]` — это `DATABASE_URL`.
+   Если в пароле есть `@`, `:`, `/` или `#`, закодируйте их (`@` → `%40`).
 4. Создайте структуру: **SQL Editor → New query**, вставьте целиком
    [`drizzle/bootstrap.sql`](drizzle/bootstrap.sql) и нажмите **Run**.
 
@@ -109,16 +116,16 @@ node e2e/portal.mjs   # сквозной прогон в браузере (ну�
    |---|---|
    | `DATABASE_URL` | строка подключения из Supabase |
    | `AUTH_SECRET` | `openssl rand -hex 32` |
-   | `NEXT_PUBLIC_APP_URL` | адрес портала, например `https://portal.вашдомен.ru` |
+   | `APP_URL` | адрес портала, например `https://portal.вашдомен.ru` |
    | `OWNER_EMAIL` | ваша рабочая почта |
    | `RESEND_API_KEY` | ключ [Resend](https://resend.com), опционально |
    | `MAIL_FROM` | адрес отправителя, например `portal@вашдомен.ru` |
 
-3. Задеплойте, затем один раз примените миграции с локальной машины:
+   `APP_URL` можно не задавать: адрес определится из заголовков запроса. Но
+   лучше задать — тогда ссылки для входа нельзя подделать через заголовок `Host`.
 
-   ```bash
-   DATABASE_URL='строка из Supabase' npx drizzle-kit migrate
-   ```
+3. Нажмите **Deploy**. Структура базы уже создана на шаге 1, отдельно накатывать
+   миграции не нужно.
 
 4. Откройте портал и войдите под `OWNER_EMAIL` — учётная запись владельца
    создаётся при первом входе.
@@ -163,7 +170,7 @@ cd portal
 cat > .env <<'ENV'
 POSTGRES_PASSWORD=придумайте-длинный-пароль
 AUTH_SECRET=вставьте-вывод-openssl-rand-hex-32
-NEXT_PUBLIC_APP_URL=https://portal.вашдомен.ru
+APP_URL=https://portal.вашдомен.ru
 OWNER_EMAIL=вы@вашдомен.ru
 ENV
 

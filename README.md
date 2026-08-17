@@ -75,6 +75,11 @@ node e2e/portal.mjs   # сквозной прогон в браузере (ну�
 
 ## Развёртывание
 
+Два пути на выбор. Первый не требует своего сервера и делается в браузере,
+второй — если инфраструктура должна остаться у вас.
+
+## Вариант А: Vercel + Supabase
+
 ### 1. База данных (Supabase)
 
 1. Создайте проект на [supabase.com](https://supabase.com) — бесплатного тарифа
@@ -83,6 +88,15 @@ node e2e/portal.mjs   # сквозной прогон в браузере (ну�
    (Yandex Cloud, Selectel) — Supabase в этом случае не подходит.
 2. **Project Settings → Database → Connection string → URI**, режим **Session**.
 3. Подставьте пароль проекта вместо `[YOUR-PASSWORD]` — это `DATABASE_URL`.
+4. Создайте структуру: **SQL Editor → New query**, вставьте целиком
+   [`drizzle/bootstrap.sql`](drizzle/bootstrap.sql) и нажмите **Run**.
+
+   Один файл создаёт таблицы, триггеры неизменяемости, отметки о применённых
+   миграциях и стартовое наполнение — 14 вопросов первого круга, словарь
+   процесса и типовые риски. Ни терминал, ни Node.js для этого не нужны.
+
+   Если предпочитаете командную строку, тот же результат даёт
+   `DATABASE_URL='…' npx drizzle-kit migrate && npm run db:seed`.
 
 Драйвер настроен с `prepare: false`, поэтому работает и через пулер Supabase.
 
@@ -134,6 +148,54 @@ values ('ivanov@company.ru', 'Иван Иванов', 'client', 'ООО «Ком
 её можно отправить заказчику вручную. Для самостоятельного входа подключите
 [Resend](https://resend.com): подтвердите домен, создайте ключ, задайте
 `RESEND_API_KEY` и `MAIL_FROM`.
+
+## Вариант Б: свой сервер (Docker)
+
+Подойдёт, если данные должны оставаться на вашей инфраструктуре — например,
+из-за требований к хранению персональных данных.
+
+Нужен сервер с Docker и Docker Compose.
+
+```bash
+git clone https://github.com/HPaceDev/altschool.git portal
+cd portal
+
+cat > .env <<'ENV'
+POSTGRES_PASSWORD=придумайте-длинный-пароль
+AUTH_SECRET=вставьте-вывод-openssl-rand-hex-32
+NEXT_PUBLIC_APP_URL=https://portal.вашдомен.ru
+OWNER_EMAIL=вы@вашдомен.ru
+ENV
+
+docker compose up -d --build
+```
+
+Всё. База создаётся и наполняется автоматически из `drizzle/bootstrap.sql` при
+первом запуске — миграции отдельно накатывать не нужно. Приложение слушает
+`127.0.0.1:3000`; наружу его отдаёт nginx или Caddy, они же терминируют HTTPS.
+
+Пример для Caddy — HTTPS-сертификат он получит сам:
+
+```
+portal.вашдомен.ru {
+    reverse_proxy 127.0.0.1:3000
+}
+```
+
+Порт базы наружу не публикуется: она доступна только контейнеру приложения.
+Данные лежат в томе `db-data` и переживают пересборку образа.
+
+Обновление после изменений в коде:
+
+```bash
+git pull && docker compose up -d --build
+```
+
+Резервная копия базы:
+
+```bash
+docker compose exec db pg_dump -U portal portal | gzip > backup-$(date +%F).sql.gz
+```
 
 ### Роль приложения
 

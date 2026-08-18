@@ -42,6 +42,7 @@ fi
 if [ -n "$DOMAIN" ]; then
   CADDY_SITE="$DOMAIN"
   APP_URL="https://$DOMAIN"
+  APP_BIND="127.0.0.1:3000"
 else
   [ -n "$SERVER_IP" ] || die "Не удалось определить адрес сервера. Укажите домен: DOMAIN=… bash …"
 
@@ -61,11 +62,16 @@ else
   if [ "$use_sslip" = "n" ] || [ "$use_sslip" = "N" ]; then
     CADDY_SITE=":80"
     APP_URL="http://$SERVER_IP"
+    # Приложение отдаётся напрямую, Caddy не поднимается: иначе он занял бы
+    # порт 443 без сертификата, и браузер, который сам подставляет https,
+    # упирался бы в ошибку TLS вместо возврата на http.
+    APP_BIND="0.0.0.0:80"
     warn "Портал будет работать по http без шифрования. Добавьте домен, прежде чем давать доступ заказчику."
   else
     DOMAIN="$SERVER_IP.sslip.io"
     CADDY_SITE="$DOMAIN"
     APP_URL="https://$DOMAIN"
+    APP_BIND="127.0.0.1:3000"
   fi
 fi
 
@@ -86,6 +92,14 @@ if [ -n "$DOMAIN" ]; then
   elif [ -z "$DOMAIN_IP" ]; then
     warn "Домен $DOMAIN пока не разрешается в адрес. Сертификат будет выдан после настройки DNS."
   fi
+fi
+
+if [ "$APP_BIND" = "0.0.0.0:80" ]; then
+  COMPOSE_ARGS=()
+  HEALTH_URL="http://127.0.0.1/login"
+else
+  COMPOSE_ARGS=(--profile tls)
+  HEALTH_URL="http://127.0.0.1:3000/login"
 fi
 
 # --------------------------------------------------------------------------
@@ -143,8 +157,10 @@ if [ -f .env ]; then
   say "Файл .env уже есть — пароли сохраняю, адрес обновляю"
   sed -i "s|^DOMAIN=.*|DOMAIN=$CADDY_SITE|" .env
   sed -i "s|^APP_URL=.*|APP_URL=$APP_URL|" .env
+  sed -i "s|^APP_BIND=.*|APP_BIND=$APP_BIND|" .env
   grep -q '^DOMAIN=' .env || echo "DOMAIN=$CADDY_SITE" >> .env
   grep -q '^APP_URL=' .env || echo "APP_URL=$APP_URL" >> .env
+  grep -q '^APP_BIND=' .env || echo "APP_BIND=$APP_BIND" >> .env
 else
   say "Создаю .env со случайными паролями"
   umask 077
@@ -154,6 +170,7 @@ POSTGRES_PASSWORD=$(openssl rand -hex 24)
 AUTH_SECRET=$(openssl rand -hex 32)
 DOMAIN=$CADDY_SITE
 APP_URL=$APP_URL
+APP_BIND=$APP_BIND
 OWNER_EMAIL=$OWNER_EMAIL
 
 # Отправка писем со ссылками для входа. Пока не заполнено, ссылка
@@ -189,11 +206,11 @@ else
 fi
 
 say "Собираю и запускаю (первая сборка занимает 3–7 минут)"
-docker compose --profile tls up -d --build
+docker compose "${COMPOSE_ARGS[@]}" up -d --build
 
 say "Жду готовности портала"
 for i in $(seq 1 60); do
-  code="$(curl -fsS -o /dev/null -w '%{http_code}' --max-time 5 http://127.0.0.1:3000/login 2>/dev/null || echo 000)"
+  code="$(curl -fsS -o /dev/null -w '%{http_code}' --max-time 5 "$HEALTH_URL" 2>/dev/null || echo 000)"
   if [ "$code" = "200" ]; then
     printf '\033[1;32mПортал отвечает.\033[0m\n'
     break
@@ -222,7 +239,7 @@ $CERT_NOTE
        where email='client@example.com';"
 
   Обновить портал после изменений в коде:
-    cd $APP_DIR && git pull && docker compose --profile tls up -d --build
+    cd $APP_DIR && git pull && docker compose ${COMPOSE_ARGS[*]} up -d --build
 
   Резервная копия базы:
     cd $APP_DIR && docker compose exec db pg_dump -U portal portal | gzip > backup-\$(date +%F).sql.gz

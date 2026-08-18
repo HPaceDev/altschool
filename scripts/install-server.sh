@@ -28,27 +28,64 @@ die() { printf '\n\033[1;31mОшибка:\033[0m %s\n' "$*" >&2; exit 1; }
 DOMAIN="${DOMAIN:-}"
 OWNER_EMAIL="${OWNER_EMAIL:-}"
 
+SERVER_IP="$(curl -fsS --max-time 10 https://api.ipify.org 2>/dev/null || echo '')"
+
 if [ -z "$DOMAIN" ]; then
-  read -rp "Домен портала (например portal.example.ru): " DOMAIN
+  echo
+  echo "Домен нужен только для сертификата HTTPS. Без него портал тоже работает."
+  read -rp "Домен портала (Enter — открыть по IP): " DOMAIN
 fi
+
+# CADDY_SITE — то, что попадёт в конфиг Caddy: имя домена или «:80» для
+# работы по IP без сертификата. APP_URL — адрес, который портал подставляет
+# в ссылки для входа.
+if [ -n "$DOMAIN" ]; then
+  CADDY_SITE="$DOMAIN"
+  APP_URL="https://$DOMAIN"
+else
+  [ -n "$SERVER_IP" ] || die "Не удалось определить адрес сервера. Укажите домен: DOMAIN=… bash …"
+
+  echo
+  echo "Есть два способа открыть портал без своего домена:"
+  echo
+  echo "  1. https://$SERVER_IP.sslip.io — настоящий сертификат, ничего покупать"
+  echo "     не нужно. sslip.io — публичный сервис, который отдаёт адрес прямо"
+  echo "     из имени. Трафик шифруется, браузер не ругается."
+  echo
+  echo "  2. http://$SERVER_IP — просто по адресу, без шифрования. Ссылки для"
+  echo "     входа и cookie идут открытым текстом: годится посмотреть самому,"
+  echo "     но не для показа заказчику."
+  echo
+  read -rp "Использовать вариант 1 с сертификатом? [Y/n] " use_sslip
+
+  if [ "$use_sslip" = "n" ] || [ "$use_sslip" = "N" ]; then
+    CADDY_SITE=":80"
+    APP_URL="http://$SERVER_IP"
+    warn "Портал будет работать по http без шифрования. Добавьте домен, прежде чем давать доступ заказчику."
+  else
+    DOMAIN="$SERVER_IP.sslip.io"
+    CADDY_SITE="$DOMAIN"
+    APP_URL="https://$DOMAIN"
+  fi
+fi
+
 if [ -z "$OWNER_EMAIL" ]; then
   read -rp "Ваша рабочая почта (под ней вы войдёте владельцем): " OWNER_EMAIL
 fi
-
-[ -n "$DOMAIN" ] || die "Домен не указан."
 [ -n "$OWNER_EMAIL" ] || die "Почта не указана."
 
 # Сертификат выдаётся только на домен, который уже указывает на этот сервер.
-SERVER_IP="$(curl -fsS --max-time 10 https://api.ipify.org 2>/dev/null || echo '')"
-DOMAIN_IP="$(getent hosts "$DOMAIN" 2>/dev/null | awk '{print $1; exit}' || echo '')"
+if [ -n "$DOMAIN" ]; then
+  DOMAIN_IP="$(getent hosts "$DOMAIN" 2>/dev/null | awk '{print $1; exit}' || echo '')"
 
-if [ -n "$SERVER_IP" ] && [ -n "$DOMAIN_IP" ] && [ "$SERVER_IP" != "$DOMAIN_IP" ]; then
-  warn "Домен $DOMAIN сейчас указывает на $DOMAIN_IP, а сервер имеет адрес $SERVER_IP."
-  warn "Пока A-запись не обновится, Let's Encrypt не выдаст сертификат."
-  read -rp "Продолжить всё равно? [y/N] " answer
-  [ "$answer" = "y" ] || [ "$answer" = "Y" ] || die "Остановлено. Поправьте DNS и запустите скрипт снова."
-elif [ -z "$DOMAIN_IP" ]; then
-  warn "Домен $DOMAIN пока не разрешается в адрес. Сертификат будет выдан после настройки DNS."
+  if [ -n "$SERVER_IP" ] && [ -n "$DOMAIN_IP" ] && [ "$SERVER_IP" != "$DOMAIN_IP" ]; then
+    warn "Домен $DOMAIN сейчас указывает на $DOMAIN_IP, а сервер имеет адрес $SERVER_IP."
+    warn "Пока A-запись не обновится, Let's Encrypt не выдаст сертификат."
+    read -rp "Продолжить всё равно? [y/N] " answer
+    [ "$answer" = "y" ] || [ "$answer" = "Y" ] || die "Остановлено. Поправьте DNS и запустите скрипт снова."
+  elif [ -z "$DOMAIN_IP" ]; then
+    warn "Домен $DOMAIN пока не разрешается в адрес. Сертификат будет выдан после настройки DNS."
+  fi
 fi
 
 # --------------------------------------------------------------------------
@@ -101,7 +138,13 @@ cd "$APP_DIR"
 # --------------------------------------------------------------------------
 
 if [ -f .env ]; then
-  say "Файл .env уже есть — пароли оставляю прежними"
+  # Пароли не трогаем, а адрес обновляем: именно ради смены IP на домен
+  # скрипт чаще всего и запускают повторно.
+  say "Файл .env уже есть — пароли сохраняю, адрес обновляю"
+  sed -i "s|^DOMAIN=.*|DOMAIN=$CADDY_SITE|" .env
+  sed -i "s|^APP_URL=.*|APP_URL=$APP_URL|" .env
+  grep -q '^DOMAIN=' .env || echo "DOMAIN=$CADDY_SITE" >> .env
+  grep -q '^APP_URL=' .env || echo "APP_URL=$APP_URL" >> .env
 else
   say "Создаю .env со случайными паролями"
   umask 077
@@ -109,8 +152,8 @@ else
 # Создано автоматически $(date '+%Y-%m-%d %H:%M'). Пароли сгенерированы случайно.
 POSTGRES_PASSWORD=$(openssl rand -hex 24)
 AUTH_SECRET=$(openssl rand -hex 32)
-DOMAIN=$DOMAIN
-APP_URL=https://$DOMAIN
+DOMAIN=$CADDY_SITE
+APP_URL=$APP_URL
 OWNER_EMAIL=$OWNER_EMAIL
 
 # Отправка писем со ссылками для входа. Пока не заполнено, ссылка
@@ -135,6 +178,16 @@ fi
 # Запуск
 # --------------------------------------------------------------------------
 
+if [ -n "$DOMAIN" ]; then
+  CERT_NOTE="
+Сертификат выпускается при первом обращении. Если браузер ругается,
+подождите минуту и обновите страницу."
+else
+  CERT_NOTE="
+Портал работает по http без шифрования. Прежде чем давать доступ
+заказчику, добавьте домен и перезапустите скрипт."
+fi
+
 say "Собираю и запускаю (первая сборка занимает 3–7 минут)"
 docker compose --profile tls up -d --build
 
@@ -154,15 +207,12 @@ cat <<FINAL
 ────────────────────────────────────────────────────────────
 Готово.
 
-  Адрес:    https://$DOMAIN
+  Адрес:    $APP_URL
   Владелец: $OWNER_EMAIL
 
 Откройте адрес и введите почту владельца. Почтовый сервис пока не
 подключён, поэтому ссылка для входа появится прямо на странице.
-
-Если сертификат ещё не выдан, подождите минуту после того, как A-запись
-домена начнёт указывать на этот сервер, затем обновите страницу.
-
+$CERT_NOTE
 Дальше пригодится:
 
   Заменить тестового заказчика на реального:

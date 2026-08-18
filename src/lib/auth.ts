@@ -179,7 +179,10 @@ async function startSession(userId: string): Promise<void> {
   jar.set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    // Флаг привязан к реальной схеме, а не к режиму сборки: помеченную
+    // Secure cookie браузер не отдаёт по http, и портал, открытый по IP без
+    // сертификата, молча не пускал бы внутрь после перехода по ссылке.
+    secure: (await getBaseUrl()).startsWith("https://"),
     path: "/",
     expires: expiresAt,
   });

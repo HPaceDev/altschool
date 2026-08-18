@@ -1,19 +1,26 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { consumeLoginLink } from "@/lib/auth";
 import { recordAudit } from "@/lib/audit";
+import { getBaseUrl } from "@/lib/request-context";
 
 export async function GET(request: NextRequest) {
   const token = request.nextUrl.searchParams.get("token");
-  const home = new URL("/", request.nextUrl.origin);
+
+  // Адрес берётся из настройки или заголовков запроса, а не из
+  // request.nextUrl.origin: последний отражает адрес, на котором слушает сам
+  // сервер. За обратным прокси и при заходе по IP он не совпадает с тем, что
+  // видит пользователь, и после перехода по ссылке его унесло бы на чужой
+  // адрес — уже без только что выданной cookie.
+  const base = await getBaseUrl();
 
   if (!token) {
-    return NextResponse.redirect(new URL("/login?error=missing", request.nextUrl.origin));
+    return NextResponse.redirect(new URL("/login?error=missing", base));
   }
 
   const user = await consumeLoginLink(token);
 
   if (!user) {
-    return NextResponse.redirect(new URL("/login?error=expired", request.nextUrl.origin));
+    return NextResponse.redirect(new URL("/login?error=expired", base));
   }
 
   await recordAudit({
@@ -25,5 +32,5 @@ export async function GET(request: NextRequest) {
     summary: `${user.name} вошёл в портал`,
   });
 
-  return NextResponse.redirect(home);
+  return NextResponse.redirect(new URL("/", base));
 }

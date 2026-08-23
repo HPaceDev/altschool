@@ -98,7 +98,7 @@ check("родитель не может отвечать", (await parent.locator
 const clientCtx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
 const client = await enterAs(clientCtx, "client", "/questions");
 check("роль заказчика открывает вопросы", client.url() === `${BASE}/questions`);
-check("список вопросов", (await client.locator("a[href^='/questions/Q-']").count()) === 16);
+check("список вопросов", (await client.locator("a[href^='/questions/Q-']").count()) === 27);
 await client.screenshot({ path: `${SHOT}/05-questions.png`, fullPage: true });
 
 await client.goto(`${BASE}/questions/Q-005`);

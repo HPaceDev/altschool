@@ -17,7 +17,6 @@ export default async function PortalLayout({ children }: { children: React.React
     .where(and(eq(questions.status, "open"), eq(questions.priority, "blocker")));
 
   const items: NavItem[] = [
-    { href: "/", label: "Обзор" },
     { href: "/prototype", label: "Прототип" },
     {
       href: "/questions",
@@ -25,13 +24,6 @@ export default async function PortalLayout({ children }: { children: React.React
       badge: openBlockers || undefined,
       badgeTone: "blocker",
     },
-    { href: "/decisions", label: "Решения" },
-    { href: "/scope", label: "Скоуп" },
-    { href: "/risks", label: "Риски" },
-    { href: "/glossary", label: "Глоссарий" },
-    { href: "/spec", label: "ТЗ" },
-    { href: "/acceptance", label: "Приёмка" },
-    { href: "/journal", label: "Журнал" },
   ];
 
   return (

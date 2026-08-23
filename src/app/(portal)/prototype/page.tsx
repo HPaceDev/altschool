@@ -1,138 +1,113 @@
 import Link from "next/link";
-import { asc, desc } from "drizzle-orm";
-import { db } from "@/db";
-import { prototypeVersions, screens } from "@/db/schema";
-import { formatDate } from "@/lib/labels";
-import { Badge, Card, Code, EmptyState, PageHeader, Section } from "@/components/ui";
+import { CITIES, KINDS, SCHOOLS, filterSchools } from "@/lib/prototype-data";
+import { SchoolCard } from "@/components/prototype/parts";
 
 export const metadata = { title: "Прототип" };
 
-export default async function PrototypePage() {
-  const [versions, screenRows] = await Promise.all([
-    db.select().from(prototypeVersions).orderBy(desc(prototypeVersions.publishedAt)),
-    db.select().from(screens).orderBy(asc(screens.sortOrder), asc(screens.code)),
-  ]);
+const STEPS = [
+  {
+    title: "Расскажите о ребёнке",
+    text: "Возраст, город и что для вас важно: формат, языки, бюджет.",
+  },
+  {
+    title: "Сравните подходящие школы",
+    text: "Мы покажем те, где есть места, и дадим сравнить их рядом.",
+  },
+  {
+    title: "Запишитесь на встречу",
+    text: "Одна заявка — школа связывается с вами и приглашает на день открытых дверей.",
+  },
+];
 
-  const current = versions.find((v) => v.isCurrent) ?? versions[0];
+export default function PrototypeHome() {
+  const popular = filterSchools({ sort: "rating" }).slice(0, 4);
 
   return (
     <>
-      <PageHeader
-        title="Кликабельный прототип"
-        lead="Прототип показывает будущую систему до того, как написана хоть одна строка кода. Кликайте по нему как по настоящему приложению: любое «а вот тут неудобно» сейчас стоит нам десять минут, а после разработки — несколько дней."
-      />
+      {/* Поиск */}
+      <section className="rounded-2xl border border-line bg-surface-raised px-5 py-8 sm:px-8 sm:py-10">
+        <h1 className="max-w-xl text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+          Найдите школу, в которую ребёнок захочет ходить
+        </h1>
+        <p className="mt-3 max-w-xl text-sm leading-relaxed text-ink-muted">
+          {SCHOOLS.length} проверенных частных, семейных и онлайн-школ. Сравнивайте по
+          программе, цене и отзывам, записывайтесь на встречу в один клик.
+        </p>
 
-      {!current ? (
-        <EmptyState
-          title="Прототип ещё не опубликован"
-          hint="Он появится здесь после того, как мы согласуем карту экранов. Пока что все вопросы по будущим экранам — во вкладке «Вопросы»."
-        />
-      ) : (
-        <>
-          <Card className="mb-6 px-5 py-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="font-semibold text-ink">Версия {current.version}</h2>
-                  <Badge tone="accent">текущая</Badge>
-                </div>
-                <p className="mt-1 text-xs text-ink-faint">
-                  опубликована {formatDate(current.publishedAt)}
-                </p>
-              </div>
-              {current.url ? (
-                <a
-                  href={current.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="rounded-lg bg-accent px-3.5 py-2 text-sm font-medium text-white hover:bg-accent-text"
-                >
-                  Открыть прототип
-                </a>
-              ) : null}
-            </div>
-            {current.notes ? (
-              <p className="prose-portal mt-3 border-t border-line pt-3 text-sm text-ink-muted">
-                {current.notes}
-              </p>
-            ) : null}
-          </Card>
-
-          {versions.length > 1 ? (
-            <Section
-              title="Предыдущие версии"
-              description="Видно, что менялось между показами — чтобы не спорить о том, «так было или не так»."
-            >
-              <Card className="divide-y divide-line">
-                {versions
-                  .filter((v) => v.id !== current.id)
-                  .map((version) => (
-                    <div key={version.id} className="px-4 py-3">
-                      <div className="flex flex-wrap items-baseline justify-between gap-2">
-                        <span className="text-sm font-medium text-ink">
-                          Версия {version.version}
-                        </span>
-                        <span className="text-xs text-ink-faint">
-                          {formatDate(version.publishedAt)}
-                        </span>
-                      </div>
-                      {version.notes ? (
-                        <p className="mt-1 text-sm text-ink-muted">{version.notes}</p>
-                      ) : null}
-                    </div>
-                  ))}
-              </Card>
-            </Section>
-          ) : null}
-        </>
-      )}
-
-      <Section
-        title="Карта экранов"
-        description="Каждый экран описан вместе с состояниями: пусто, загрузка, ошибка, нет прав. Именно в этих состояниях обычно и прячутся неотвеченные вопросы."
-      >
-        {screenRows.length === 0 ? (
-          <EmptyState
-            title="Карта экранов ещё не составлена"
-            hint="Это первый шаг после того, как мы поймём роли и основные сценарии."
+        <form action="/prototype/catalog" className="mt-6 grid gap-2.5 sm:grid-cols-[1fr_auto_auto]">
+          <input
+            type="search"
+            name="query"
+            placeholder="Название школы, район или программа"
+            aria-label="Поиск"
+            className="w-full rounded-lg border border-line-strong bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none"
           />
-        ) : (
-          <div className="space-y-2.5">
-            {screenRows.map((screen) => (
-              <Card key={screen.id} className="px-4 py-3.5">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Code>{screen.code}</Code>
-                  {screen.role ? (
-                    <span className="text-xs text-ink-faint">{screen.role}</span>
-                  ) : null}
-                  {screen.route ? (
-                    <span className="font-mono text-xs text-ink-faint">{screen.route}</span>
-                  ) : null}
-                </div>
-                <p className="mt-1.5 font-medium text-ink">{screen.title}</p>
-                {screen.description ? (
-                  <p className="mt-1 text-sm text-ink-muted">{screen.description}</p>
-                ) : null}
-                {screen.states?.length ? (
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {screen.states.map((state) => (
-                      <Badge key={state} tone="later">
-                        {state}
-                      </Badge>
-                    ))}
-                  </div>
-                ) : null}
-                <Link
-                  href={`/questions?area=${encodeURIComponent(screen.title)}`}
-                  className="mt-2 inline-block text-xs text-accent-text underline underline-offset-2"
-                >
-                  Вопросы по экрану
-                </Link>
-              </Card>
+          <select
+            name="city"
+            aria-label="Город"
+            className="rounded-lg border border-line-strong bg-surface px-3 py-2.5 text-sm text-ink focus:border-accent focus:outline-none"
+          >
+            <option value="">Любой город</option>
+            {CITIES.map((city) => (
+              <option key={city} value={city}>
+                {city}
+              </option>
             ))}
-          </div>
-        )}
-      </Section>
+          </select>
+          <button
+            type="submit"
+            className="rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-text"
+          >
+            Найти
+          </button>
+        </form>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          {KINDS.map((kind) => (
+            <Link
+              key={kind}
+              href={`/prototype/catalog?kind=${encodeURIComponent(kind)}`}
+              className="rounded-full border border-line bg-surface px-3 py-1.5 text-xs text-ink-muted hover:border-accent hover:text-accent-text"
+            >
+              {kind}
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* Как это работает */}
+      <section className="mt-10">
+        <h2 className="text-lg font-semibold text-ink">Как это работает</h2>
+        <ol className="mt-4 grid gap-3 sm:grid-cols-3">
+          {STEPS.map((step, index) => (
+            <li key={step.title} className="rounded-xl border border-line bg-surface-raised p-4">
+              <span className="grid h-7 w-7 place-items-center rounded-full bg-accent-soft text-sm font-semibold text-accent-text">
+                {index + 1}
+              </span>
+              <h3 className="mt-3 font-medium text-ink">{step.title}</h3>
+              <p className="mt-1 text-sm text-ink-muted">{step.text}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      {/* Популярные школы */}
+      <section className="mt-10">
+        <div className="mb-4 flex items-end justify-between gap-3">
+          <h2 className="text-lg font-semibold text-ink">Чаще всего выбирают</h2>
+          <Link
+            href="/prototype/catalog"
+            className="text-sm text-accent-text underline underline-offset-2"
+          >
+            Весь каталог
+          </Link>
+        </div>
+        <div className="space-y-3">
+          {popular.map((school) => (
+            <SchoolCard key={school.slug} school={school} />
+          ))}
+        </div>
+      </section>
     </>
   );
 }

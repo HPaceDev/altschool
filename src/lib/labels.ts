@@ -39,62 +39,6 @@ export const questionStatusTone: Record<keyof typeof questionStatusLabel, Tone> 
   withdrawn: "later",
 };
 
-export const decisionStatusLabel = {
-  proposed: "Предложено",
-  approved: "Утверждено",
-  superseded: "Заменено",
-} as const;
-
-export const decisionStatusTone: Record<keyof typeof decisionStatusLabel, Tone> = {
-  proposed: "important",
-  approved: "done",
-  superseded: "later",
-};
-
-export const moscowLabel = {
-  must: "Обязательно",
-  should: "Желательно",
-  could: "Если успеем",
-  wont: "Не делаем",
-} as const;
-
-export const moscowTone: Record<keyof typeof moscowLabel, Tone> = {
-  must: "blocker",
-  should: "important",
-  could: "later",
-  wont: "later",
-};
-
-export const levelLabel = { low: "Низкая", medium: "Средняя", high: "Высокая" } as const;
-
-export const riskStatusLabel = {
-  open: "Открыт",
-  mitigated: "Снижен",
-  accepted: "Принят",
-  closed: "Закрыт",
-} as const;
-
-export const riskStatusTone: Record<keyof typeof riskStatusLabel, Tone> = {
-  open: "blocker",
-  mitigated: "important",
-  accepted: "later",
-  closed: "done",
-};
-
-export const requirementStatusLabel = {
-  draft: "Черновик",
-  review: "На согласовании",
-  approved: "Утверждено",
-  implemented: "Реализовано",
-} as const;
-
-export const requirementStatusTone: Record<keyof typeof requirementStatusLabel, Tone> = {
-  draft: "later",
-  review: "important",
-  approved: "done",
-  implemented: "accent",
-};
-
 /* ------------------------------------------------------------------ *
  * Даты
  * ------------------------------------------------------------------ */

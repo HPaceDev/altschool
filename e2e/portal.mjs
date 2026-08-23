@@ -30,7 +30,8 @@ async function loginAs(context, email) {
   const link = page.locator("a[href*='/api/auth/verify']");
   await link.waitFor({ timeout: 15000 });
   await link.click();
-  await page.waitForURL(`${BASE}/`, { timeout: 15000 });
+  // Корень портала перенаправляет на прототип — ждём именно его.
+  await page.waitForURL(`${BASE}/prototype`, { timeout: 15000 });
   return page;
 }
 
@@ -48,17 +49,17 @@ await client.screenshot({ path: `${SHOT}/01-overview.png`, fullPage: true });
 
 await client.goto(`${BASE}/questions`);
 await client.screenshot({ path: `${SHOT}/02-questions.png`, fullPage: true });
-check("список вопросов", (await client.locator("a[href^='/questions/Q-']").count()) === 14);
+check("список вопросов", (await client.locator("a[href^='/questions/Q-']").count()) === 16);
 
 await client.goto(`${BASE}/questions/Q-005`);
-await client.fill('textarea[name="body"]', "Жёсткой даты нет, ориентируемся на конец четвёртого квартала.");
+await client.fill('textarea[name="body"]', "Кабинет школы в первой версии не нужен, ведём базу сами.");
 await client.click('button:has-text("Ответить")');
 await client.waitForSelector("text=Ответ сохранён", { timeout: 15000 });
 check("ответ сохранён", psql("select count(*) from answers where version=1") === "1");
 
 // Правка ответа обязана создать вторую версию, а не переписать первую.
 await client.reload();
-await client.fill('textarea[name="body"]', "Уточняю: дата всё же есть — 1 декабря, под старт продаж.");
+await client.fill('textarea[name="body"]', "Уточняю: простой кабинет всё же нужен — школа должна менять цены сама.");
 await client.click('button:has-text("Сохранить новую версию")');
 await client.waitForSelector("text=Сохранена версия 2", { timeout: 15000 });
 await client.screenshot({ path: `${SHOT}/03-question-detail.png`, fullPage: true });
@@ -70,14 +71,14 @@ check("две версии ответа", versions === "1,2", `версии: ${v
 const firstBody = psql(
   "select a.body from answers a join questions q on q.id=a.question_id where q.code='Q-005' and a.version=1",
 );
-check("первая версия не изменилась", firstBody.startsWith("Жёсткой даты нет"));
+check("первая версия не изменилась", firstBody.startsWith("Кабинет школы в первой версии не нужен"));
 
 await client.click('button:has-text("Утверждаю")');
 await client.waitForSelector("text=Утверждение зафиксировано", { timeout: 15000 });
 check("утверждение записано", psql("select count(*) from approvals") === "1");
 check(
   "в утверждении сохранён текст ответа",
-  psql("select statement from approvals limit 1").includes("1 декабря"),
+  psql("select statement from approvals limit 1").includes("школа должна менять цены сама"),
 );
 
 /* ---------------- Исполнитель фиксирует ---------------- */
@@ -96,21 +97,32 @@ check("исполнитель не видит кнопку утверждени�
 
 /* ---------------- Остальные вкладки ---------------- */
 for (const [path, name] of [
-  ["/decisions", "решения"],
-  ["/scope", "скоуп"],
-  ["/risks", "риски"],
-  ["/glossary", "глоссарий"],
-  ["/spec", "тз"],
-  ["/acceptance", "приёмка"],
-  ["/journal", "журнал"],
-  ["/prototype", "прототип"],
+  ["/prototype", "главная агрегатора"],
+  ["/prototype/catalog", "каталог"],
+  ["/prototype/catalog?city=%D0%9C%D0%BE%D1%81%D0%BA%D0%B2%D0%B0&maxPrice=60000", "каталог с фильтрами"],
+  ["/prototype/school/pyatoe-izmerenie", "карточка школы"],
+  ["/prototype/compare?schools=pyatoe-izmerenie,tochka-rosta", "сравнение"],
+  ["/prototype/request?school=pyatoe-izmerenie&step=2", "заявка"],
+  ["/prototype/cabinet", "мои заявки"],
 ]) {
   const response = await owner.goto(`${BASE}${path}`);
-  check(`вкладка ${name}`, response.status() === 200, `HTTP ${response.status()}`);
+  check(`прототип: ${name}`, response.status() === 200, `HTTP ${response.status()}`);
 }
-await owner.screenshot({ path: `${SHOT}/04-journal.png`, fullPage: true });
-await owner.goto(`${BASE}/risks`);
-await owner.screenshot({ path: `${SHOT}/05-risks.png`, fullPage: true });
+
+// Фильтр обязан реально сокращать выдачу, иначе прототип вводит в заблуждение.
+await owner.goto(`${BASE}/prototype/catalog`);
+// Считаем карточки, а не ссылки: на одну школу их приходится несколько.
+const allCards = await owner.locator("article").count();
+await owner.goto(`${BASE}/prototype/catalog?maxPrice=30000`);
+const cheapCards = await owner.locator("article").count();
+check("фильтр по бюджету сокращает выдачу", cheapCards > 0 && cheapCards < allCards, `${cheapCards} из ${allCards}`);
+
+await owner.goto(`${BASE}/prototype/catalog?city=%D0%9A%D0%B0%D0%B7%D0%B0%D0%BD%D1%8C&maxPrice=30000&kind=%D0%9C%D0%B5%D0%B6%D0%B4%D1%83%D0%BD%D0%B0%D1%80%D0%BE%D0%B4%D0%BD%D0%B0%D1%8F%20%D1%88%D0%BA%D0%BE%D0%BB%D0%B0`);
+check(
+  "пустая выдача показывает объяснение",
+  await owner.getByText("Ничего не нашлось", { exact: true }).isVisible(),
+);
+
 
 /* ---------------- Журнал ---------------- */
 const events = psql("select count(*) from audit_log");
@@ -121,7 +133,7 @@ check("утверждение попало в журнал", approvedLogged === 
 /* ---------------- Доступ без входа ---------------- */
 const anonCtx = await browser.newContext();
 const anon = await anonCtx.newPage();
-await anon.goto(`${BASE}/questions`);
+await anon.goto(`${BASE}/prototype`);
 check("гостя перебрасывает на вход", anon.url().includes("/login"), anon.url());
 
 /* ---------------- Повторный переход по использованной ссылке ---------------- */
@@ -141,13 +153,13 @@ await second.goto(magic);
 check("повторный переход отклонён", second.url().includes("error=expired"), second.url());
 check(
   "без действующей сессии портал закрыт",
-  (await (await freshCtx.newPage()).goto(`${BASE}/journal`)).url().includes("/login"),
+  (await (await freshCtx.newPage()).goto(`${BASE}/questions`)).url().includes("/login"),
 );
 
 /* ---------------- Мобильная ширина ---------------- */
 const mobileCtx = await browser.newContext({ viewport: { width: 390, height: 844 } });
 const mobile = await loginAs(mobileCtx, "client@example.com");
-await mobile.goto(`${BASE}/questions`);
+await mobile.goto(`${BASE}/prototype/catalog`);
 const overflow = await mobile.evaluate(
   () => document.documentElement.scrollWidth > window.innerWidth + 1,
 );

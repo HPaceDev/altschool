@@ -9,10 +9,18 @@ export default async function WorkspaceLayout({ children }: { children: React.Re
   const role = await getCurrentRole();
   if (!role) redirect("/");
 
-  const [{ value: openBlockers }] = await db
-    .select({ value: count() })
-    .from(questions)
-    .where(and(eq(questions.status, "open"), eq(questions.priority, "blocker")));
+  // Счётчик блокеров — украшение боковой панели. Агрегатору база не нужна
+  // вовсе, поэтому её недоступность не должна закрывать прототип.
+  let openBlockers = 0;
+  try {
+    const [row] = await db
+      .select({ value: count() })
+      .from(questions)
+      .where(and(eq(questions.status, "open"), eq(questions.priority, "blocker")));
+    openBlockers = row?.value ?? 0;
+  } catch (error) {
+    console.error("[панель] не удалось посчитать блокеры:", error);
+  }
 
   // Панель показывает все области, а не только доступные роли: прототип
   // смотрят целиком, переключаясь между точками зрения.

@@ -23,6 +23,21 @@ export type AuditEntry = {
 export async function recordAudit(entry: AuditEntry): Promise<void> {
   const { ip, userAgent } = await getRequestContext();
 
+  try {
+    await writeAudit(entry, ip, userAgent);
+  } catch (error) {
+    // Журнал — это след действия, а не само действие. Недоступная база не
+    // должна закрывать прототип: агрегатор работает вообще без неё, и падать
+    // на показе заказчику из-за записи в журнал недопустимо.
+    console.error("[журнал] не удалось записать событие:", entry.action, error);
+  }
+}
+
+async function writeAudit(
+  entry: AuditEntry,
+  ip: string | null,
+  userAgent: string | null,
+): Promise<void> {
   await db.insert(auditLog).values({
     actorRole: entry.actorRole ?? null,
     actorName: entry.actorName ?? null,

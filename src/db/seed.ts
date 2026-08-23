@@ -1,5 +1,5 @@
 import { db, sql } from "./index";
-import { auditLog, questions, users } from "./schema";
+import { auditLog, questions } from "./schema";
 
 /**
  * Стартовое наполнение портала: участники и первый круг вопросов к заказчику.
@@ -219,23 +219,12 @@ const SEED_QUESTIONS: SeedQuestion[] = [
 ];
 
 async function main() {
-  const existing = await db.select({ id: users.id }).from(users).limit(1);
+  const existing = await db.select({ id: questions.id }).from(questions).limit(1);
   if (existing.length > 0) {
-    console.log("В базе уже есть данные — наполнение пропущено.");
+    console.log("В базе уже есть вопросы — наполнение пропущено.");
     console.log("Чтобы пересоздать базу с нуля: npm run db:reset");
     return;
   }
-
-  const ownerEmail = process.env.OWNER_EMAIL?.trim().toLowerCase();
-  if (!ownerEmail) throw new Error("Не задан OWNER_EMAIL в .env.local");
-
-  const [owner] = await db
-    .insert(users)
-    .values([
-      { email: ownerEmail, name: "Менеджер проекта", role: "owner" },
-      { email: "client@example.com", name: "Представитель заказчика", role: "client" },
-    ])
-    .returning();
 
   await db.insert(questions).values(
     SEED_QUESTIONS.map((q) => ({
@@ -247,22 +236,19 @@ async function main() {
       priority: q.priority,
       defaultAssumption: q.defaultAssumption,
       answerDueAt: inDays(q.dueInDays),
-      createdBy: owner.id,
     })),
   );
 
   await db.insert(auditLog).values({
-    actorId: owner.id,
-    actorEmail: owner.email,
-    actorName: owner.name,
+    actorRole: "team",
+    actorName: "Команда проекта",
     action: "project.seeded",
     entityType: "project",
-    summary: `Портал создан, заведён первый круг вопросов (${SEED_QUESTIONS.length} шт.)`,
+    summary: `Заведён первый круг вопросов (${SEED_QUESTIONS.length} шт.)`,
   });
 
   console.log(`Готово: ${SEED_QUESTIONS.length} вопросов.`);
-  console.log(`Владелец портала: ${ownerEmail}`);
-  console.log("Тестовый заказчик: client@example.com — замените на реальный адрес.");
+  console.log("Входа по паролю нет — на стартовой странице выбирается роль.");
 }
 
 main()

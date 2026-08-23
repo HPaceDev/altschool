@@ -26,7 +26,6 @@ die() { printf '\n\033[1;31mОшибка:\033[0m %s\n' "$*" >&2; exit 1; }
 # --------------------------------------------------------------------------
 
 DOMAIN="${DOMAIN:-}"
-OWNER_EMAIL="${OWNER_EMAIL:-}"
 
 SERVER_IP="$(curl -fsS --max-time 10 https://api.ipify.org 2>/dev/null || echo '')"
 
@@ -75,11 +74,6 @@ else
   fi
 fi
 
-if [ -z "$OWNER_EMAIL" ]; then
-  read -rp "Ваша рабочая почта (под ней вы войдёте владельцем): " OWNER_EMAIL
-fi
-[ -n "$OWNER_EMAIL" ] || die "Почта не указана."
-
 # Сертификат выдаётся только на домен, который уже указывает на этот сервер.
 if [ -n "$DOMAIN" ]; then
   DOMAIN_IP="$(getent hosts "$DOMAIN" 2>/dev/null | awk '{print $1; exit}' || echo '')"
@@ -96,10 +90,10 @@ fi
 
 if [ "$APP_BIND" = "0.0.0.0:80" ]; then
   COMPOSE_ARGS=()
-  HEALTH_URL="http://127.0.0.1/login"
+  HEALTH_URL="http://127.0.0.1/"
 else
   COMPOSE_ARGS=(--profile tls)
-  HEALTH_URL="http://127.0.0.1:3000/login"
+  HEALTH_URL="http://127.0.0.1:3000/"
 fi
 
 # --------------------------------------------------------------------------
@@ -167,16 +161,9 @@ else
   cat > .env <<ENV
 # Создано автоматически $(date '+%Y-%m-%d %H:%M'). Пароли сгенерированы случайно.
 POSTGRES_PASSWORD=$(openssl rand -hex 24)
-AUTH_SECRET=$(openssl rand -hex 32)
 DOMAIN=$CADDY_SITE
 APP_URL=$APP_URL
 APP_BIND=$APP_BIND
-OWNER_EMAIL=$OWNER_EMAIL
-
-# Отправка писем со ссылками для входа. Пока не заполнено, ссылка
-# показывается прямо на странице входа — её можно переслать вручную.
-RESEND_API_KEY=
-MAIL_FROM=
 ENV
   umask 022
 fi
@@ -224,19 +211,11 @@ cat <<FINAL
 ────────────────────────────────────────────────────────────
 Готово.
 
-  Адрес:    $APP_URL
-  Владелец: $OWNER_EMAIL
+  Адрес: $APP_URL
 
-Откройте адрес и введите почту владельца. Почтовый сервис пока не
-подключён, поэтому ссылка для входа появится прямо на странице.
+Откройте адрес и выберите роль — пароль не нужен.
 $CERT_NOTE
 Дальше пригодится:
-
-  Заменить тестового заказчика на реального:
-    cd $APP_DIR
-    docker compose exec db psql -U portal -d portal -c \\
-      "update users set email='ivanov@company.ru', name='Иван Иванов' \\
-       where email='client@example.com';"
 
   Обновить портал после изменений в коде:
     cd $APP_DIR && git pull && docker compose ${COMPOSE_ARGS[*]} up -d --build

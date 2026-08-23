@@ -33,8 +33,23 @@ export type School = {
   strengths: string[];
   schedule: string;
   classSize: number;
-  /** Цвета фоновой заглушки вместо фотографии: снимков школ у нас пока нет. */
-  palette: [string, string];
+  /** Приглушённый тон заглушки вместо фотографии: снимков школ у нас нет. */
+  tone: Tone;
+};
+
+export type Tone = "sage" | "clay" | "slate" | "sand" | "moss";
+
+/**
+ * Тона заглушек намеренно вымыты: карточек в каталоге много, и яркие плашки
+ * превратили бы список в мозаику, где невозможно читать. Цвет здесь работает
+ * только как метка, отличающая карточки друг от друга.
+ */
+export const TONE_COLOR: Record<Tone, string> = {
+  sage: "#6f8b7c",
+  clay: "#a1866f",
+  slate: "#78838f",
+  sand: "#a2946d",
+  moss: "#77855f",
 };
 
 export const CITIES = ["Москва", "Санкт-Петербург", "Казань", "Онлайн"] as const;
@@ -81,7 +96,7 @@ export const SCHOOLS: School[] = [
     strengths: ["Классы до 16 человек", "Два педагога в началке", "Подготовка к IB"],
     schedule: "Пн–Пт, 8:30–18:00",
     classSize: 16,
-    palette: ["#3b5bdb", "#748ffc"],
+    tone: "sage",
   },
   {
     slug: "novyy-put",
@@ -108,7 +123,7 @@ export const SCHOOLS: School[] = [
     strengths: ["Группы по 8–10 человек", "Проектное обучение", "Свободная среда"],
     schedule: "Пн–Пт, 9:00–15:00",
     classSize: 9,
-    palette: ["#2b8a3e", "#69db7c"],
+    tone: "clay",
   },
   {
     slug: "greenwood",
@@ -135,7 +150,7 @@ export const SCHOOLS: School[] = [
     strengths: ["Диплом IB", "Пансион", "Преподаватели — носители языка"],
     schedule: "Пн–Пт, 8:00–18:00, пансион",
     classSize: 14,
-    palette: ["#0b7285", "#3bc9db"],
+    tone: "slate",
   },
   {
     slug: "tochka-rosta",
@@ -163,7 +178,7 @@ export const SCHOOLS: School[] = [
     strengths: ["180 учеников на всю школу", "Кружки в стоимости", "Штатный психолог"],
     schedule: "Пн–Пт, 9:00–17:00",
     classSize: 18,
-    palette: ["#862e9c", "#b197fc"],
+    tone: "sand",
   },
   {
     slug: "lesnaya-shkola",
@@ -189,7 +204,7 @@ export const SCHOOLS: School[] = [
     strengths: ["Обучение эпохами", "Ремёсла каждый день", "Сильное сообщество родителей"],
     schedule: "Пн–Пт, 9:00–16:00",
     classSize: 20,
-    palette: ["#e8590c", "#ffa94d"],
+    tone: "moss",
   },
   {
     slug: "vektor-online",
@@ -214,7 +229,7 @@ export const SCHOOLS: School[] = [
     strengths: ["Аттестат гособразца", "Записи всех уроков", "Персональный тьютор"],
     schedule: "Пн–Пт, 10:00–15:00 по Москве",
     classSize: 25,
-    palette: ["#1971c2", "#4dabf7"],
+    tone: "slate",
   },
   {
     slug: "montessori-dom",
@@ -240,7 +255,7 @@ export const SCHOOLS: School[] = [
     strengths: ["Педагоги с дипломами AMI", "Плавный переход сад → школа", "Разновозрастные группы"],
     schedule: "Пн–Пт, 8:30–17:30",
     classSize: 15,
-    palette: ["#c2255c", "#faa2c1"],
+    tone: "clay",
   },
   {
     slug: "akademiya-polet",
@@ -268,7 +283,7 @@ export const SCHOOLS: School[] = [
     strengths: ["Преподаватели из вузов", "Свои лаборатории", "Олимпиадные сборы"],
     schedule: "Пн–Сб, 9:00–17:00",
     classSize: 20,
-    palette: ["#5f3dc4", "#9775fa"],
+    tone: "sage",
   },
   {
     slug: "apelsin",
@@ -294,7 +309,7 @@ export const SCHOOLS: School[] = [
     strengths: ["Класс на 12 детей", "Двуязычная среда", "Выездные занятия"],
     schedule: "Пн–Пт, 9:00–14:00",
     classSize: 12,
-    palette: ["#e67700", "#ffd43b"],
+    tone: "sand",
   },
   {
     slug: "bilingva",
@@ -321,7 +336,7 @@ export const SCHOOLS: School[] = [
     strengths: ["Носители языка", "Российский аттестат", "Китайский с 7 класса"],
     schedule: "Пн–Пт, 8:30–18:00",
     classSize: 18,
-    palette: ["#0c8599", "#66d9e8"],
+    tone: "moss",
   },
 ];
 

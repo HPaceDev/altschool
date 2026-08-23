@@ -66,7 +66,7 @@ export default async function CatalogPage({
     <>
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-ink">Каталог школ</h1>
+          <h1 className="display text-xl text-ink">Каталог школ</h1>
           <p className="mt-1 text-sm text-ink-muted">
             {results.length > 0
               ? `${plural(results.length, "школа", "школы", "школ")} по вашим условиям`
@@ -98,7 +98,7 @@ export default async function CatalogPage({
           </p>
           <Link
             href={`/prototype/compare?schools=${compare.join(",")}`}
-            className="rounded-lg bg-accent px-3.5 py-1.5 text-sm font-medium text-white hover:bg-accent-text"
+            className="rounded-lg bg-accent px-3.5 py-1.5 text-sm font-medium text-white hover:bg-accent-hover"
           >
             Сравнить
           </Link>

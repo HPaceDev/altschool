@@ -52,7 +52,7 @@ export default async function SchoolPage({ params }: { params: Promise<{ slug: s
 
           <div className="mt-5 flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight text-ink">{school.name}</h1>
+              <h1 className="display text-2xl text-ink">{school.name}</h1>
               <p className="mt-1 text-sm text-ink-muted">
                 {school.kind} · {school.city}
                 {school.district !== "Вся Россия" ? `, ${school.district}` : ""}
@@ -71,12 +71,12 @@ export default async function SchoolPage({ params }: { params: Promise<{ slug: s
           </div>
 
           <section className="mt-6">
-            <h2 className="text-base font-semibold text-ink">О школе</h2>
+            <h2 className="display text-base text-ink">О школе</h2>
             <p className="prose-portal mt-2 text-sm text-ink-muted">{school.about}</p>
           </section>
 
           <section className="mt-6">
-            <h2 className="text-base font-semibold text-ink">Сильные стороны</h2>
+            <h2 className="display text-base text-ink">Сильные стороны</h2>
             <ul className="mt-2 space-y-1.5">
               {school.strengths.map((item) => (
                 <li key={item} className="flex gap-2 text-sm text-ink-muted">
@@ -90,7 +90,7 @@ export default async function SchoolPage({ params }: { params: Promise<{ slug: s
           </section>
 
           <section className="mt-6">
-            <h2 className="text-base font-semibold text-ink">Условия</h2>
+            <h2 className="display text-base text-ink">Условия</h2>
             <dl className="mt-2 divide-y divide-line rounded-xl border border-line">
               <Row label="Стоимость обучения">{formatPrice(school.pricePerMonth)} в месяц</Row>
               {school.admissionFee ? (
@@ -110,7 +110,7 @@ export default async function SchoolPage({ params }: { params: Promise<{ slug: s
           </section>
 
           <section className="mt-6">
-            <h2 className="text-base font-semibold text-ink">
+            <h2 className="display text-base text-ink">
               Отзывы родителей
               {reviews.length ? (
                 <span className="ml-2 text-sm font-normal text-ink-faint">
@@ -146,7 +146,7 @@ export default async function SchoolPage({ params }: { params: Promise<{ slug: s
         {/* Боковая панель с заявкой */}
         <aside className="lg:sticky lg:top-6 lg:self-start">
           <div className="rounded-xl border border-line bg-surface-raised p-5">
-            <p className="text-xl font-semibold text-ink">
+            <p className="nums text-xl font-semibold text-ink">
               {formatPrice(school.pricePerMonth)}
               <span className="text-sm font-normal text-ink-faint"> / мес</span>
             </p>
@@ -159,7 +159,7 @@ export default async function SchoolPage({ params }: { params: Promise<{ slug: s
             {school.admissionOpen ? (
               <Link
                 href={`/prototype/request?school=${school.slug}`}
-                className="mt-4 block rounded-lg bg-accent px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-accent-text"
+                className="mt-4 block rounded-lg bg-accent px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-accent-hover"
               >
                 Записаться на встречу
               </Link>
@@ -189,7 +189,7 @@ export default async function SchoolPage({ params }: { params: Promise<{ slug: s
 
       {similar.length > 0 ? (
         <section className="mt-10">
-          <h2 className="mb-4 text-lg font-semibold text-ink">Похожие школы</h2>
+          <h2 className="display mb-4 text-lg text-ink">Похожие школы</h2>
           <div className="space-y-3">
             {similar.map((item) => (
               <SchoolCard key={item.slug} school={item} />

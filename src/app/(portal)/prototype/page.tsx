@@ -26,7 +26,7 @@ export default function PrototypeHome() {
     <>
       {/* Поиск */}
       <section className="rounded-2xl border border-line bg-surface-raised px-5 py-8 sm:px-8 sm:py-10">
-        <h1 className="max-w-xl text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+        <h1 className="display max-w-xl text-3xl leading-tight text-ink sm:text-4xl">
           Найдите школу, в которую ребёнок захочет ходить
         </h1>
         <p className="mt-3 max-w-xl text-sm leading-relaxed text-ink-muted">
@@ -56,7 +56,7 @@ export default function PrototypeHome() {
           </select>
           <button
             type="submit"
-            className="rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-text"
+            className="rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-hover"
           >
             Найти
           </button>
@@ -77,7 +77,7 @@ export default function PrototypeHome() {
 
       {/* Как это работает */}
       <section className="mt-10">
-        <h2 className="text-lg font-semibold text-ink">Как это работает</h2>
+        <h2 className="display text-lg text-ink">Как это работает</h2>
         <ol className="mt-4 grid gap-3 sm:grid-cols-3">
           {STEPS.map((step, index) => (
             <li key={step.title} className="rounded-xl border border-line bg-surface-raised p-4">
@@ -94,7 +94,7 @@ export default function PrototypeHome() {
       {/* Популярные школы */}
       <section className="mt-10">
         <div className="mb-4 flex items-end justify-between gap-3">
-          <h2 className="text-lg font-semibold text-ink">Чаще всего выбирают</h2>
+          <h2 className="display text-lg text-ink">Чаще всего выбирают</h2>
           <Link
             href="/prototype/catalog"
             className="text-sm text-accent-text underline underline-offset-2"

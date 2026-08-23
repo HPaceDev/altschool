@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { canEditProject, getCurrentUser } from "@/lib/auth";
+import { canEditProject, getCurrentRole } from "@/lib/roles";
 import { priorityHint, priorityLabel } from "@/lib/labels";
 import { Card, Field, PageHeader, inputStyles } from "@/components/ui";
 import { ActionForm } from "@/components/action-form";
@@ -9,11 +9,11 @@ import { createQuestionAction } from "@/app/actions/questions";
 export const metadata = { title: "Новый вопрос" };
 
 export default async function NewQuestionPage() {
-  const user = await getCurrentUser();
-  if (!canEditProject(user)) redirect("/questions");
+  const role = await getCurrentRole();
+  if (!canEditProject(role)) redirect("/questions");
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-2xl px-5 py-8 sm:px-6 sm:py-10">
       <Link
         href="/questions"
         className="text-sm text-ink-muted underline underline-offset-2 hover:text-ink"

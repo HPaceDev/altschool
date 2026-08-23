@@ -178,7 +178,7 @@ export default async function RequestPage({
             <div className="mt-5 flex flex-wrap justify-center gap-2">
               <Link
                 href="/prototype/cabinet"
-                className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-text"
+                className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover"
               >
                 Мои заявки
               </Link>
@@ -206,7 +206,7 @@ export default async function RequestPage({
             )}
             <Link
               href={stepHref(step + 1)}
-              className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-text"
+              className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover"
             >
               {step === 2 ? "Отправить заявку" : "Далее"}
             </Link>

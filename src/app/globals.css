@@ -1,56 +1,39 @@
 @import "tailwindcss";
 
 /* --------------------------------------------------------------------
- * Токены портала. Спокойная деловая палитра: документ, который не стыдно
- * показать заказчику и в котором статусы читаются с одного взгляда.
+ * Токены прототипа.
+ *
+ * Тема одна — светлая. Выбор школы решение дорогое и волнительное, поэтому
+ * палитра спокойная: почти нейтральные серые с еле заметным тёплым уклоном,
+ * глубокий приглушённый зелёный как единственный акцент и охра только на
+ * рейтингах. Ничего яркого: цвет здесь работает точечно, а не заливкой.
  * ------------------------------------------------------------------ */
 
 :root {
   --surface: #ffffff;
   --surface-raised: #ffffff;
-  --surface-sunken: #f6f7f9;
-  --border: #e3e6ea;
-  --border-strong: #cdd3da;
-  --text: #14181d;
-  --text-muted: #5c6672;
-  --text-faint: #8a939e;
-  --accent: #2f5fd0;
-  --accent-soft: #eaf0fd;
-  --accent-text: #1f47a8;
+  --surface-sunken: #f5f6f4;
+  --border: #e4e6e3;
+  --border-strong: #cbcfc9;
+  --text: #1b201d;
+  --text-muted: #55605a;
+  --text-faint: #838c87;
 
-  --blocker: #c0392f;
-  --blocker-soft: #fdeceb;
-  --important: #9a6205;
-  --important-soft: #fdf3e0;
-  --later: #5c6672;
-  --later-soft: #f0f2f5;
-  --done: #1f7a52;
-  --done-soft: #e6f5ee;
-}
+  --accent: #1e6b57;
+  --accent-hover: #17553f;
+  --accent-soft: #e3efe9;
+  --accent-text: #17553f;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --surface: #14171c;
-    --surface-raised: #1b1f26;
-    --surface-sunken: #101317;
-    --border: #2a2f38;
-    --border-strong: #3b424e;
-    --text: #e8eaee;
-    --text-muted: #9aa3b0;
-    --text-faint: #6f7885;
-    --accent: #7ba1f5;
-    --accent-soft: #1b2740;
-    --accent-text: #a8c1fb;
+  --warm: #b3741a;
 
-    --blocker: #f08a80;
-    --blocker-soft: #33201e;
-    --important: #e0b25c;
-    --important-soft: #302819;
-    --later: #9aa3b0;
-    --later-soft: #232830;
-    --done: #6ec79b;
-    --done-soft: #162c22;
-  }
+  --blocker: #a83b32;
+  --blocker-soft: #fbecea;
+  --important: #8f6011;
+  --important-soft: #fbf2e2;
+  --later: #6a7871;
+  --later-soft: #f0f1ef;
+  --done: #2b6e4b;
+  --done-soft: #e4f1e9;
 }
 
 @theme inline {
@@ -63,8 +46,10 @@
   --color-ink-muted: var(--text-muted);
   --color-ink-faint: var(--text-faint);
   --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
   --color-accent-soft: var(--accent-soft);
   --color-accent-text: var(--accent-text);
+  --color-warm: var(--warm);
   --color-blocker: var(--blocker);
   --color-blocker-soft: var(--blocker-soft);
   --color-important: var(--important);
@@ -73,25 +58,27 @@
   --color-later-soft: var(--later-soft);
   --color-done: var(--done);
   --color-done-soft: var(--done-soft);
-  --font-sans: var(--font-sans-stack);
-  --font-mono: var(--font-mono-stack);
-}
-
-html {
-  --font-sans-stack: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
-    Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono-stack: var(--font-mono-face), ui-monospace, SFMono-Regular, "SF Mono", Menlo,
-    Consolas, monospace;
+  --font-sans: var(--font-golos), ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-serif: var(--font-literata), Georgia, "Times New Roman", serif;
 }
 
 body {
   background: var(--surface-sunken);
   color: var(--text);
-  font-family: var(--font-sans-stack);
+  font-family: var(--font-golos), ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Ссылки внутри пользовательского текста (ответы, описания вопросов). */
+/* Заголовки набраны шрифтом с засечками: он спокойнее и «книжнее», чем
+   интерфейсный, и сразу отличает содержание от органов управления. */
+.display {
+  font-family: var(--font-literata), Georgia, "Times New Roman", serif;
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+}
+
+/* Пользовательский текст: ответы, описания школ. */
 .prose-portal {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -101,4 +88,23 @@ body {
 /* Широкие таблицы прокручиваются внутри себя, а не растягивают страницу. */
 .table-scroll {
   overflow-x: auto;
+}
+
+/* Цифры в колонках должны выстраиваться друг под другом. */
+.nums {
+  font-variant-numeric: tabular-nums;
+}
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

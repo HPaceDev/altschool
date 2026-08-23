@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { canAnswer, canApprove, canEditProject, getCurrentUser } from "@/lib/auth";
+import { canAnswer, canEditProject, getCurrentRole } from "@/lib/roles";
 import { getQuestionByCode } from "@/lib/queries";
 import {
   describeDeadline,
@@ -14,6 +14,7 @@ import {
 } from "@/lib/labels";
 import { Badge, Card, Code, inputStyles } from "@/components/ui";
 import { ActionForm } from "@/components/action-form";
+import { AuthorNameField } from "@/components/author-name";
 import {
   acceptAnswerAction,
   addCommentAction,
@@ -31,8 +32,8 @@ export async function generateMetadata({ params }: { params: Promise<{ code: str
 
 export default async function QuestionPage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
-  const [user, data] = await Promise.all([
-    getCurrentUser(),
+  const [role, data] = await Promise.all([
+    getCurrentRole(),
     getQuestionByCode(code.toUpperCase()),
   ]);
 
@@ -40,12 +41,12 @@ export default async function QuestionPage({ params }: { params: Promise<{ code:
 
   const { question, answers, latestAnswer, comments, approvals } = data;
   const deadline = describeDeadline(question.answerDueAt);
-  const isOwner = canEditProject(user);
+  const isTeam = canEditProject(role);
   const overdueWithoutAnswer =
     question.status === "open" && question.answerDueAt && question.answerDueAt < new Date();
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto max-w-3xl px-5 py-8 sm:px-6 sm:py-10">
       <Link
         href="/questions"
         className="text-sm text-ink-muted underline underline-offset-2 hover:text-ink"
@@ -67,7 +68,7 @@ export default async function QuestionPage({ params }: { params: Promise<{ code:
         ) : null}
       </div>
 
-      <h1 className="mt-2.5 text-2xl font-semibold tracking-tight text-ink">{question.title}</h1>
+      <h1 className="display mt-2.5 text-2xl text-ink">{question.title}</h1>
 
       <Card className="mt-4 px-5 py-4">
         <p className="prose-portal text-sm text-ink">{question.body}</p>
@@ -116,7 +117,7 @@ export default async function QuestionPage({ params }: { params: Promise<{ code:
 
       {/* Ответ */}
       <section className="mt-8">
-        <h2 className="mb-3 text-base font-semibold text-ink">
+        <h2 className="display mb-3 text-base text-ink">
           {latestAnswer ? "Текущий ответ" : "Ответ"}
         </h2>
 
@@ -137,7 +138,7 @@ export default async function QuestionPage({ params }: { params: Promise<{ code:
           </Card>
         )}
 
-        {canAnswer(user) && question.status !== "withdrawn" ? (
+        {canAnswer(role) && question.status !== "withdrawn" ? (
           <Card className="mt-3 px-5 py-4">
             <ActionForm
               action={submitAnswerAction}
@@ -160,6 +161,9 @@ export default async function QuestionPage({ params }: { params: Promise<{ code:
                   {latestAnswer.version}.
                 </p>
               ) : null}
+              <div className="mt-3">
+                <AuthorNameField />
+              </div>
             </ActionForm>
           </Card>
         ) : null}
@@ -168,7 +172,7 @@ export default async function QuestionPage({ params }: { params: Promise<{ code:
       {/* История версий ответа */}
       {answers.length > 1 ? (
         <section className="mt-8">
-          <h2 className="mb-3 text-base font-semibold text-ink">История ответов</h2>
+          <h2 className="display mb-3 text-base text-ink">История ответов</h2>
           <ol className="space-y-2.5">
             {answers.map((answer, index) => (
               <li key={answer.id}>
@@ -194,7 +198,7 @@ export default async function QuestionPage({ params }: { params: Promise<{ code:
 
       {/* Утверждения */}
       <section className="mt-8">
-        <h2 className="mb-3 text-base font-semibold text-ink">Утверждение</h2>
+        <h2 className="display mb-3 text-base text-ink">Утверждение</h2>
 
         {approvals.length > 0 ? (
           <ul className="mb-3 space-y-2.5">
@@ -202,7 +206,7 @@ export default async function QuestionPage({ params }: { params: Promise<{ code:
               <li key={approval.id}>
                 <Card className="border-done/30 bg-done-soft px-5 py-4">
                   <p className="text-sm font-medium text-done">
-                    {approval.actorName} · {approval.actorEmail}
+                    {approval.actorName}
                   </p>
                   <p className="mt-1 text-xs text-done/80">
                     {formatDateTime(approval.createdAt)}
@@ -217,7 +221,7 @@ export default async function QuestionPage({ params }: { params: Promise<{ code:
           <p className="mb-3 text-sm text-ink-muted">Ответ ещё не утверждён заказчиком.</p>
         )}
 
-        {canApprove(user) && latestAnswer ? (
+        {canAnswer(role) && latestAnswer ? (
           <Card className="px-5 py-4">
             <p className="text-sm text-ink-muted">
               Нажимая «Утверждаю», вы подтверждаете действующую версию ответа. Ваше имя,
@@ -231,6 +235,9 @@ export default async function QuestionPage({ params }: { params: Promise<{ code:
               confirm="Подтвердить действующую версию ответа? Запись останется в истории навсегда."
             >
               <input type="hidden" name="questionId" value={question.id} />
+              <div className="mt-3">
+                <AuthorNameField />
+              </div>
             </ActionForm>
           </Card>
         ) : null}
@@ -238,7 +245,7 @@ export default async function QuestionPage({ params }: { params: Promise<{ code:
 
       {/* Обсуждение */}
       <section className="mt-8">
-        <h2 className="mb-3 text-base font-semibold text-ink">Обсуждение</h2>
+        <h2 className="display mb-3 text-base text-ink">Обсуждение</h2>
 
         {comments.length > 0 ? (
           <ul className="mb-3 space-y-2.5">
@@ -270,15 +277,18 @@ export default async function QuestionPage({ params }: { params: Promise<{ code:
               placeholder="Уточнить формулировку, задать встречный вопрос…"
               className={inputStyles}
             />
+            <div className="mt-3">
+              <AuthorNameField />
+            </div>
           </ActionForm>
         </Card>
       </section>
 
-      {/* Действия исполнителя */}
-      {isOwner ? (
+      {/* Действия команды проекта */}
+      {isTeam ? (
         <section className="mt-10 border-t border-line pt-6">
           <h2 className="mb-3 text-sm font-semibold tracking-wide text-ink-faint uppercase">
-            Действия исполнителя
+            Действия команды проекта
           </h2>
           <div className="space-y-4">
             {latestAnswer && question.status !== "accepted" ? (

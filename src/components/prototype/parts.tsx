@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { ageRange, formatPrice, type School } from "@/lib/prototype-data";
-import { FORMAT_LABEL } from "@/lib/prototype-data";
+import { FORMAT_LABEL, TONE_COLOR, ageRange, formatPrice, type School } from "@/lib/prototype-data";
 
 /**
  * Фотографий школ у нас пока нет, поэтому вместо них — цветная заглушка
@@ -16,15 +15,21 @@ export function Photo({
   className?: string;
   initials?: boolean;
 }) {
-  const [from, to] = school.palette;
+  const color = TONE_COLOR[school.tone];
   return (
     <div
       aria-hidden
       className={`flex items-center justify-center overflow-hidden ${className}`}
-      style={{ background: `linear-gradient(135deg, ${from}, ${to})` }}
+      style={{
+        backgroundColor: color,
+        // Тонкая штриховка поверх ровной заливки: плашка перестаёт выглядеть
+        // «дырой» на месте фотографии, но не спорит с текстом рядом.
+        backgroundImage:
+          "repeating-linear-gradient(135deg, rgba(255,255,255,0.07) 0 1px, transparent 1px 9px)",
+      }}
     >
       {initials ? (
-        <span className="text-2xl font-semibold text-white/85">
+        <span className="display text-2xl text-white/90">
           {school.name
             .split(" ")
             .slice(0, 2)
@@ -39,10 +44,10 @@ export function Photo({
 export function Rating({ value, count }: { value: number; count?: number }) {
   return (
     <span className="inline-flex items-center gap-1 text-sm">
-      <span aria-hidden className="text-[#f59f00]">
+      <span aria-hidden className="text-warm">
         ★
       </span>
-      <span className="font-medium text-ink">{value.toFixed(1)}</span>
+      <span className="nums font-medium text-ink">{value.toFixed(1)}</span>
       {count !== undefined ? (
         <span className="text-ink-faint">
           ({count})<span className="sr-only"> отзывов</span>
@@ -83,7 +88,7 @@ export function SchoolCard({
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0">
             <Link href={`/prototype/school/${school.slug}`}>
-              <h3 className="font-semibold text-ink group-hover:text-accent-text">
+              <h3 className="display text-base text-ink group-hover:text-accent-text">
                 {school.name}
               </h3>
             </Link>
@@ -106,7 +111,7 @@ export function SchoolCard({
 
         <div className="mt-4 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-lg font-semibold text-ink">
+            <p className="nums text-lg font-semibold text-ink">
               {formatPrice(school.pricePerMonth)}
               <span className="text-sm font-normal text-ink-faint"> / мес</span>
             </p>
@@ -137,7 +142,7 @@ export function SchoolCard({
             ) : null}
             <Link
               href={`/prototype/school/${school.slug}`}
-              className="rounded-lg bg-accent px-3 py-1.5 text-sm font-medium text-white hover:bg-accent-text"
+              className="rounded-lg bg-accent px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
             >
               Подробнее
             </Link>

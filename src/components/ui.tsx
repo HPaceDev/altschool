@@ -57,7 +57,7 @@ export function PageHeader({
   return (
     <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
       <div className="max-w-2xl">
-        <h1 className="text-2xl font-semibold tracking-tight text-ink">{title}</h1>
+        <h1 className="display text-2xl text-ink">{title}</h1>
         {lead ? <p className="mt-2 text-sm leading-relaxed text-ink-muted">{lead}</p> : null}
       </div>
       {actions ? <div className="flex shrink-0 gap-2">{actions}</div> : null}
@@ -115,7 +115,7 @@ const buttonBase =
   "inline-flex items-center justify-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-55 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
 
 export const buttonStyles = {
-  primary: `${buttonBase} bg-accent text-white hover:bg-accent-text`,
+  primary: `${buttonBase} bg-accent text-white hover:bg-accent-hover`,
   secondary: `${buttonBase} border border-line-strong bg-surface-raised text-ink hover:bg-surface-sunken`,
   quiet: `${buttonBase} text-ink-muted hover:bg-surface-sunken hover:text-ink`,
 };
@@ -156,7 +156,7 @@ export function Section({
     <section className="mb-8">
       <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
         <div>
-          <h2 className="text-base font-semibold text-ink">{title}</h2>
+          <h2 className="display text-base text-ink">{title}</h2>
           {description ? <p className="mt-1 text-sm text-ink-muted">{description}</p> : null}
         </div>
         {actions}

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getCurrentUser, canEditProject } from "@/lib/auth";
+import { canEditProject, getCurrentRole } from "@/lib/roles";
 import { listQuestions } from "@/lib/queries";
 import {
   describeDeadline,
@@ -22,8 +22,8 @@ export default async function QuestionsPage({
 }: {
   searchParams: Promise<{ status?: string; priority?: string; area?: string }>;
 }) {
-  const [user, all, filters] = await Promise.all([
-    getCurrentUser(),
+  const [role, all, filters] = await Promise.all([
+    getCurrentRole(),
     listQuestions(),
     searchParams,
   ]);
@@ -46,7 +46,7 @@ export default async function QuestionsPage({
   const blockers = all.filter((q) => q.status === "open" && q.priority === "blocker").length;
 
   return (
-    <>
+    <div className="mx-auto max-w-4xl px-5 py-8 sm:px-6 sm:py-10">
       <PageHeader
         title="Вопросы и ответы"
         lead={
@@ -57,7 +57,7 @@ export default async function QuestionsPage({
           </>
         }
         actions={
-          canEditProject(user) ? (
+          canEditProject(role) ? (
             <Link href="/questions/new" className={buttonStyles.primary}>
               Новый вопрос
             </Link>
@@ -147,6 +147,6 @@ export default async function QuestionsPage({
           })}
         </ul>
       )}
-    </>
+    </div>
   );
 }

@@ -41,7 +41,7 @@ const toneClass = {
 export default function CabinetPage() {
   return (
     <>
-      <h1 className="text-xl font-semibold tracking-tight text-ink">Мои заявки</h1>
+      <h1 className="display text-xl text-ink">Мои заявки</h1>
       <p className="mt-1 text-sm text-ink-muted">
         Здесь видно, что происходит с каждой заявкой и что делать дальше.
       </p>
@@ -95,7 +95,7 @@ export default function CabinetPage() {
         <p className="text-sm text-ink-muted">Хотите рассмотреть ещё варианты?</p>
         <Link
           href="/prototype/catalog"
-          className="mt-3 inline-block rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-text"
+          className="mt-3 inline-block rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover"
         >
           Подобрать школы
         </Link>

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { answers, approvals, comments, questions } from "@/db/schema";
-import { canAnswer, canApprove, canEditProject, getCurrentUser } from "@/lib/auth";
+import { canAnswer, canEditProject, getCurrentRole } from "@/lib/roles";
 import { recordAudit } from "@/lib/audit";
 import { getRequestContext } from "@/lib/request-context";
 import { nextCode } from "@/lib/codes";
@@ -14,6 +14,14 @@ export type ActionResult = { ok: boolean; message: string };
 const ok = (message: string): ActionResult => ({ ok: true, message });
 const fail = (message: string): ActionResult => ({ ok: false, message });
 
+/**
+ * Имя автора. Поле необязательное: если его не заполнили, в истории
+ * останется название роли — это хуже, чем имя, но лучше, чем пустота.
+ */
+function displayName(formData: FormData, fallback: string): string {
+  return String(formData.get("authorName") ?? "").trim().slice(0, 80) || fallback;
+}
+
 /* ------------------------------------------------------------------ *
  * Ответ на вопрос
  * ------------------------------------------------------------------ */
@@ -22,8 +30,8 @@ export async function submitAnswerAction(
   _prev: ActionResult | null,
   formData: FormData,
 ): Promise<ActionResult> {
-  const user = await getCurrentUser();
-  if (!canAnswer(user) || !user) return fail("У вас нет прав отвечать на вопросы.");
+  const role = await getCurrentRole();
+  if (!role || !canAnswer(role)) return fail("Отвечать на вопросы может только заказчик.");
 
   const questionId = String(formData.get("questionId") ?? "");
   const body = String(formData.get("body") ?? "").trim();
@@ -49,9 +57,8 @@ export async function submitAnswerAction(
     questionId,
     version,
     body,
-    authorId: user.id,
-    authorEmail: user.email,
-    authorName: user.name,
+    authorRole: role.id,
+    authorName: displayName(formData, role.title),
     ip,
     userAgent,
   });
@@ -62,15 +69,16 @@ export async function submitAnswerAction(
     .where(eq(questions.id, questionId));
 
   await recordAudit({
-    actor: user,
+    actorRole: role.id,
+    actorName: displayName(formData, role.title),
     action: version === 1 ? "question.answered" : "question.answer_revised",
     entityType: "question",
     entityId: questionId,
     entityCode: question.code,
     summary:
       version === 1
-        ? `${user.name} ответил на ${question.code}`
-        : `${user.name} уточнил ответ на ${question.code} (версия ${version})`,
+        ? `${displayName(formData, role.title)} ответил на ${question.code}`
+        : `${displayName(formData, role.title)} уточнил ответ на ${question.code} (версия ${version})`,
     payload: { version, body },
   });
 
@@ -94,8 +102,8 @@ export async function addCommentAction(
   _prev: ActionResult | null,
   formData: FormData,
 ): Promise<ActionResult> {
-  const user = await getCurrentUser();
-  if (!user) return fail("Нужно войти в портал.");
+  const role = await getCurrentRole();
+  if (!role) return fail("Сначала выберите роль на стартовой странице.");
 
   const questionId = String(formData.get("questionId") ?? "");
   const body = String(formData.get("body") ?? "").trim();
@@ -107,17 +115,18 @@ export async function addCommentAction(
   await db.insert(comments).values({
     questionId,
     body,
-    authorId: user.id,
-    authorName: user.name,
+    authorRole: role.id,
+    authorName: displayName(formData, role.title),
   });
 
   await recordAudit({
-    actor: user,
+    actorRole: role.id,
+    actorName: displayName(formData, role.title),
     action: "question.commented",
     entityType: "question",
     entityId: questionId,
     entityCode: question.code,
-    summary: `${user.name} прокомментировал ${question.code}`,
+    summary: `${displayName(formData, role.title)} прокомментировал ${question.code}`,
     payload: { body },
   });
 
@@ -135,8 +144,8 @@ export async function acceptAnswerAction(
   _prev: ActionResult | null,
   formData: FormData,
 ): Promise<ActionResult> {
-  const user = await getCurrentUser();
-  if (!canEditProject(user) || !user) return fail("Фиксировать ответ может только исполнитель.");
+  const role = await getCurrentRole();
+  if (!role || !canEditProject(role)) return fail("Фиксировать ответ может только команда проекта.");
 
   const questionId = String(formData.get("questionId") ?? "");
   const [question] = await db.select().from(questions).where(eq(questions.id, questionId)).limit(1);
@@ -157,7 +166,8 @@ export async function acceptAnswerAction(
     .where(eq(questions.id, questionId));
 
   await recordAudit({
-    actor: user,
+    actorRole: role.id,
+    actorName: displayName(formData, role.title),
     action: "question.accepted",
     entityType: "question",
     entityId: questionId,
@@ -177,9 +187,8 @@ export async function approveQuestionAction(
   _prev: ActionResult | null,
   formData: FormData,
 ): Promise<ActionResult> {
-  const user = await getCurrentUser();
-  if (!canApprove(user) || !user)
-    return fail("Утверждать может только представитель заказчика.");
+  const role = await getCurrentRole();
+  if (!role || !canAnswer(role)) return fail("Утверждать может только заказчик.");
 
   const questionId = String(formData.get("questionId") ?? "");
   const [question] = await db.select().from(questions).where(eq(questions.id, questionId)).limit(1);
@@ -207,20 +216,20 @@ export async function approveQuestionAction(
     entityId: questionId,
     entityCode: question.code,
     statement,
-    actorId: user.id,
-    actorEmail: user.email,
-    actorName: user.name,
+    actorRole: role.id,
+    actorName: displayName(formData, role.title),
     ip,
     userAgent,
   });
 
   await recordAudit({
-    actor: user,
+    actorRole: role.id,
+    actorName: displayName(formData, role.title),
     action: "question.approved",
     entityType: "question",
     entityId: questionId,
     entityCode: question.code,
-    summary: `${user.name} утвердил ответ на ${question.code}`,
+    summary: `${displayName(formData, role.title)} утвердил ответ на ${question.code}`,
     payload: { answerVersion: latest.version },
   });
 
@@ -237,8 +246,8 @@ export async function applyAssumptionAction(
   _prev: ActionResult | null,
   formData: FormData,
 ): Promise<ActionResult> {
-  const user = await getCurrentUser();
-  if (!canEditProject(user) || !user) return fail("Это действие доступно исполнителю.");
+  const role = await getCurrentRole();
+  if (!role || !canEditProject(role)) return fail("Это действие доступно команде проекта.");
 
   const questionId = String(formData.get("questionId") ?? "");
   const [question] = await db.select().from(questions).where(eq(questions.id, questionId)).limit(1);
@@ -255,7 +264,8 @@ export async function applyAssumptionAction(
     .where(eq(questions.id, questionId));
 
   await recordAudit({
-    actor: user,
+    actorRole: role.id,
+    actorName: displayName(formData, role.title),
     action: "question.assumption_applied",
     entityType: "question",
     entityId: questionId,
@@ -278,8 +288,8 @@ export async function createQuestionAction(
   _prev: ActionResult | null,
   formData: FormData,
 ): Promise<ActionResult> {
-  const user = await getCurrentUser();
-  if (!canEditProject(user) || !user) return fail("Заводить вопросы может только исполнитель.");
+  const role = await getCurrentRole();
+  if (!role || !canEditProject(role)) return fail("Заводить вопросы может только команда проекта.");
 
   const title = String(formData.get("title") ?? "").trim();
   const body = String(formData.get("body") ?? "").trim();
@@ -306,17 +316,17 @@ export async function createQuestionAction(
       screenRef,
       defaultAssumption,
       answerDueAt: dueRaw ? new Date(dueRaw) : null,
-      createdBy: user.id,
     })
     .returning();
 
   await recordAudit({
-    actor: user,
+    actorRole: role.id,
+    actorName: displayName(formData, role.title),
     action: "question.created",
     entityType: "question",
     entityId: created.id,
     entityCode: code,
-    summary: `${user.name} завёл вопрос ${code}: ${title}`,
+    summary: `${displayName(formData, role.title)} завёл вопрос ${code}: ${title}`,
     payload: { priority, area, defaultAssumption, answerDueAt: created.answerDueAt },
   });
 
@@ -331,8 +341,8 @@ export async function withdrawQuestionAction(
   _prev: ActionResult | null,
   formData: FormData,
 ): Promise<ActionResult> {
-  const user = await getCurrentUser();
-  if (!canEditProject(user) || !user) return fail("Это действие доступно исполнителю.");
+  const role = await getCurrentRole();
+  if (!role || !canEditProject(role)) return fail("Это действие доступно команде проекта.");
 
   const questionId = String(formData.get("questionId") ?? "");
   const reason = String(formData.get("reason") ?? "").trim();
@@ -347,7 +357,8 @@ export async function withdrawQuestionAction(
     .where(and(eq(questions.id, questionId)));
 
   await recordAudit({
-    actor: user,
+    actorRole: role.id,
+    actorName: displayName(formData, role.title),
     action: "question.withdrawn",
     entityType: "question",
     entityId: questionId,

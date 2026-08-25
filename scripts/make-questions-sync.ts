@@ -1,5 +1,5 @@
 import { writeFileSync } from "node:fs";
-import { SEED_QUESTIONS, inDays } from "../src/db/questions";
+import { SEED_QUESTIONS } from "../src/db/questions";
 
 /**
  * Готовит SQL-патч, которым вопросы на уже работающем сервере приводятся в
@@ -10,8 +10,11 @@ import { SEED_QUESTIONS, inDays } from "../src/db/questions";
  * пропадут ответы заказчика.
  *
  * Патч добавляет недостающие вопросы и обновляет тексты уже заведённых.
- * Он намеренно не трогает статус, срок ответа и всё, что связано с ответами:
- * формулировку вопроса уточнять можно, ход согласования переписывать нельзя.
+ * Он намеренно не трогает статус и всё, что связано с ответами: формулировку
+ * вопроса уточнять можно, ход согласования переписывать нельзя.
+ *
+ * Заодно патч догоняет изменения схемы, которые нельзя применить пересозданием
+ * базы. Все такие команды пишутся идемпотентно — патч можно накатывать повторно.
  *
  * Запуск: npm run db:questions-sql
  */
@@ -26,16 +29,19 @@ const lines: string[] = [
   "--   docker compose exec -T db psql -U portal -d portal < drizzle/questions-sync.sql",
   "--",
   "-- Патч добавляет новые вопросы и уточняет формулировки существующих.",
-  "-- Ответы, утверждения, статусы и сроки не затрагиваются.",
+  "-- Ответы, утверждения и статусы не затрагиваются.",
   "",
   "BEGIN;",
+  "",
+  "-- Схема: сроков ответа у вопросов больше нет.",
+  "ALTER TABLE questions DROP COLUMN IF EXISTS answer_due_at;",
   "",
 ];
 
 for (const q of SEED_QUESTIONS) {
   lines.push(
-    `INSERT INTO questions (code, title, body, area, screen_ref, priority, default_assumption, answer_due_at)`,
-    `VALUES (${quote(q.code)}, ${quote(q.title)}, ${quote(q.body)}, ${quote(q.area)}, ${quote(q.screenRef)}, ${quote(q.priority)}, ${quote(q.defaultAssumption)}, ${quote(inDays(q.dueInDays).toISOString())})`,
+    `INSERT INTO questions (code, title, body, area, screen_ref, priority, default_assumption)`,
+    `VALUES (${quote(q.code)}, ${quote(q.title)}, ${quote(q.body)}, ${quote(q.area)}, ${quote(q.screenRef)}, ${quote(q.priority)}, ${quote(q.defaultAssumption)})`,
     `ON CONFLICT (code) DO UPDATE SET`,
     `  title = EXCLUDED.title,`,
     `  body = EXCLUDED.body,`,

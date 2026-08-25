@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { GROUP_NOTE, GROUP_TITLE, ROLES, type RoleGroup } from "@/lib/roles";
 
 export const metadata = { title: "Выбор роли" };
@@ -38,7 +37,10 @@ export default function RolePicker() {
           <ul className="mt-5 grid gap-4 sm:grid-cols-2">
             {ROLES.filter((role) => role.group === group).map((role) => (
               <li key={role.id}>
-                <Link
+                {/* Обычная ссылка, а не <Link>: этот адрес ставит cookie роли,
+                    а Next.js подгружает <Link> заранее — тогда роль выбиралась
+                    бы сама, стоило прокрутить страницу до карточки. */}
+                <a
                   href={`/enter/${role.id}`}
                   className="group flex h-full flex-col rounded-xl border border-line bg-surface-raised p-5 transition-[border-color,box-shadow] hover:border-accent/40 hover:shadow-[0_2px_12px_rgba(27,32,29,0.06)]"
                 >
@@ -78,7 +80,7 @@ export default function RolePicker() {
                       →
                     </span>
                   </span>
-                </Link>
+                </a>
               </li>
             ))}
           </ul>

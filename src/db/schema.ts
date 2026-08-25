@@ -39,7 +39,7 @@ export const priorityEnum = pgEnum("priority", ["blocker", "important", "later"]
  * open              — ждём ответа заказчика
  * answered          — ответ есть, мы его ещё не приняли в работу
  * accepted          — ответ зафиксирован как основание для требований
- * assumption_applied— срок ответа вышел, действует допущение по умолчанию
+ * assumption_applied— ответа нет, работаем по допущению по умолчанию
  * withdrawn         — вопрос снят (например, отпал вместе со скоупом)
  */
 export const questionStatusEnum = pgEnum("question_status", [
@@ -67,7 +67,6 @@ export const questions = pgTable(
      * молчание перестаёт блокировать работу и становится согласием.
      */
     defaultAssumption: text("default_assumption"),
-    answerDueAt: timestamp("answer_due_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },

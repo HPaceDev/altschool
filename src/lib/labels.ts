@@ -27,7 +27,7 @@ export const questionStatusLabel = {
   open: "Ждём ответа",
   answered: "Есть ответ",
   accepted: "Зафиксировано",
-  assumption_applied: "Действует допущение",
+  assumption_applied: "Работаем по допущению",
   withdrawn: "Снят",
 } as const;
 
@@ -67,23 +67,6 @@ export function formatDateTime(value: Date | string | null | undefined): string 
 export function formatDate(value: Date | string | null | undefined): string {
   if (!value) return "—";
   return dateFormat.format(new Date(value));
-}
-
-/** «осталось 3 дня» / «просрочено на 2 дня» — для сроков ответа. */
-export function describeDeadline(due: Date | string | null | undefined): {
-  text: string;
-  overdue: boolean;
-} | null {
-  if (!due) return null;
-
-  const dueDate = new Date(due);
-  const startOfDay = (d: Date) => Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
-  const days = Math.round((startOfDay(dueDate) - startOfDay(new Date())) / 86_400_000);
-
-  if (days < 0) return { text: `просрочено на ${plural(-days, "день", "дня", "дней")}`, overdue: true };
-  if (days === 0) return { text: "срок сегодня", overdue: false };
-  if (days === 1) return { text: "срок завтра", overdue: false };
-  return { text: `осталось ${plural(days, "день", "дня", "дней")}`, overdue: false };
 }
 
 export function plural(n: number, one: string, few: string, many: string): string {

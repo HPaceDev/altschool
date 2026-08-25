@@ -6,9 +6,6 @@
  * Держать их в двух местах нельзя: разъедутся.
  */
 
-export const DAY = 24 * 60 * 60 * 1000;
-export const inDays = (n: number) => new Date(Date.now() + n * DAY);
-
 export type SeedQuestion = {
   code: string;
   title: string;
@@ -16,8 +13,8 @@ export type SeedQuestion = {
   area: string;
   screenRef: string | null;
   priority: "blocker" | "important" | "later";
+  /** Как мы поступим, пока ответа нет. Срока у вопроса нет: ответят — переделаем. */
   defaultAssumption: string;
-  dueInDays: number;
 };
 
 export const SEED_QUESTIONS: SeedQuestion[] = [
@@ -31,7 +28,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "blocker",
     defaultAssumption:
       "Считаем основной моделью оплату школами за размещение. Учёт заявок и биллинг в первую версию не входят.",
-    dueInDays: 4,
   },
   {
     code: "Q-002",
@@ -43,7 +39,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "blocker",
     defaultAssumption:
       "Первую сотню школ заполняем вручную через админку. Кабинет школы и саморегистрация — следующий этап.",
-    dueInDays: 4,
   },
   {
     code: "Q-003",
@@ -55,7 +50,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "blocker",
     defaultAssumption:
       "Заявка уходит на почту школы и вашему менеджеру. Родитель видит статусы в разделе «Мои заявки», статусы проставляет менеджер вручную.",
-    dueInDays: 5,
   },
   {
     code: "Q-004",
@@ -67,7 +61,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "blocker",
     defaultAssumption:
       "Берём частные, семейные и онлайн-школы в Москве и Петербурге. Сады, кружки и государственные школы — вне первой версии.",
-    dueInDays: 5,
   },
   {
     code: "Q-005",
@@ -79,7 +72,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "blocker",
     defaultAssumption:
       "В первой версии кабинета школы нет. Всё ведут ваши менеджеры через админку, школа присылает изменения письмом.",
-    dueInDays: 6,
   },
   {
     code: "Q-006",
@@ -91,7 +83,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "important",
     defaultAssumption:
       "Оставляем текущий набор фильтров: город, тип, формат, возраст, бюджет. Остальное показываем в карточке, но не фильтруем.",
-    dueInDays: 8,
   },
   {
     code: "Q-007",
@@ -103,7 +94,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "important",
     defaultAssumption:
       "Отзывы оставляют родители на сайте, публикация после ручной модерации. Рейтинг — среднее по отзывам. Школа может ответить на отзыв, удалять отзывы нельзя.",
-    dueInDays: 8,
   },
   {
     code: "Q-008",
@@ -115,7 +105,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "important",
     defaultAssumption:
       "Заявку оставляют без регистрации. После отправки родитель получает ссылку на почту, по ней и попадает в «Мои заявки». Пароля нет.",
-    dueInDays: 8,
   },
   {
     code: "Q-009",
@@ -127,7 +116,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "important",
     defaultAssumption:
       "Оставляем текущий состав карточки, цены показываем открыто. Карта, виртуальные туры и состав педагогов — следующий этап.",
-    dueInDays: 8,
   },
   {
     code: "Q-010",
@@ -139,7 +127,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "important",
     defaultAssumption:
       "Рассчитываем на поисковый трафик: делаем страницы категорий по городу и типу школы с текстами и разметкой для поисковиков.",
-    dueInDays: 10,
   },
   {
     code: "Q-011",
@@ -151,7 +138,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "later",
     defaultAssumption:
       "Сравнение оставляем в текущем виде: три школы, таблица параметров с подсветкой различий.",
-    dueInDays: 12,
   },
   {
     code: "Q-012",
@@ -163,7 +149,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "later",
     defaultAssumption:
       "В первой версии подбора с участием человека нет: родитель ищет сам, форма заявки одна.",
-    dueInDays: 12,
   },
   {
     code: "Q-013",
@@ -175,7 +160,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "important",
     defaultAssumption:
       "Деньги за обучение через сервис не проходят. Родитель платит школе напрямую.",
-    dueInDays: 10,
   },
   {
     code: "Q-014",
@@ -187,7 +171,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "important",
     defaultAssumption:
       "Название и стиль остаются рабочими заглушками. Оформление приводим к фирменному стилю отдельным этапом после запуска.",
-    dueInDays: 10,
   },
   {
     code: "Q-015",
@@ -199,7 +182,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "later",
     defaultAssumption:
       "Мобильного приложения нет. Делаем адаптивный сайт, удобный на телефоне.",
-    dueInDays: 14,
   },
   {
     code: "Q-016",
@@ -211,7 +193,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "important",
     defaultAssumption:
       "Считаем главной метрикой число отправленных заявок и приоритезируем то, что увеличивает их количество.",
-    dueInDays: 8,
   },
 
   /* ---------------------------------------------------------------- *
@@ -229,7 +210,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "blocker",
     defaultAssumption:
       "Первым делаем агрегатор школ. Кабинет школы и франчайзинговый раздел описываем, но не разрабатываем до его запуска.",
-    dueInDays: 4,
   },
   {
     code: "Q-018",
@@ -241,7 +221,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "blocker",
     defaultAssumption:
       "Считаем «обучающую платформу» рабочим кабинетом школы: лиды, аналитика, контент и события. Обучения детей и педагогов в системе нет.",
-    dueInDays: 4,
   },
   {
     code: "Q-019",
@@ -253,7 +232,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "blocker",
     defaultAssumption:
       "Считаем принимающим решения того, кто отвечает в этом портале от роли «Заказчик». Его ответы обязательны для обеих сторон.",
-    dueInDays: 3,
   },
   {
     code: "Q-020",
@@ -265,7 +243,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "blocker",
     defaultAssumption:
       "Публикуем только общедоступные контакты школы и собственные краткие описания, без копирования чужих текстов и фотографий. По первому требованию школы карточка скрывается.",
-    dueInDays: 6,
   },
   {
     code: "Q-021",
@@ -277,7 +254,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "blocker",
     defaultAssumption:
       "Робот-обзвон и SMS-рассылка в первую версию не входят. Приглашения школам отправляются вручную вашими менеджерами.",
-    dueInDays: 6,
   },
   {
     code: "Q-022",
@@ -289,7 +265,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "blocker",
     defaultAssumption:
       "В первую версию интеграции с CRM нет: заявки приходят на почту и в админку. Коллтрекинг не подключаем.",
-    dueInDays: 8,
   },
   {
     code: "Q-023",
@@ -301,7 +276,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "important",
     defaultAssumption:
       "Делаем лендинг со списком франшиз и картой открытых школ. Калькулятор и личные кабинеты франшиз — следующий этап.",
-    dueInDays: 10,
   },
   {
     code: "Q-024",
@@ -313,7 +287,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "important",
     defaultAssumption:
       "Уровни и квалификацию в первую версию не включаем: все школы в каталоге равны.",
-    dueInDays: 10,
   },
   {
     code: "Q-025",
@@ -325,7 +298,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "important",
     defaultAssumption:
       "Карты в первой версии нет. В карточке указываем город, район и ближайшее метро.",
-    dueInDays: 12,
   },
   {
     code: "Q-026",
@@ -337,7 +309,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "blocker",
     defaultAssumption:
       "Каталог открыт для всех школ развивающего обучения. Школы Altschool помечаются как проверенные, но не поднимаются в выдаче искусственно.",
-    dueInDays: 5,
   },
   {
     code: "Q-027",
@@ -349,7 +320,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "important",
     defaultAssumption:
       "Считаем 4 октября обычной встречей без обязательств показать готовый продукт. Планируем работу от объёма.",
-    dueInDays: 4,
   },
 
   /* ---------------------------------------------------------------- *
@@ -367,7 +337,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "blocker",
     defaultAssumption:
       "Идём по второму сценарию: два продукта на общем ядре, два домена, общая база и система прав.",
-    dueInDays: 5,
   },
   {
     code: "Q-029",
@@ -379,7 +348,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "blocker",
     defaultAssumption:
       "Считаем выбор подтверждённым: «Атлас Про» + «Сеть Про», сценарий 2, запуск волнами с франчайзингового контура. Дату старта считаем от даты подписания договора.",
-    dueInDays: 3,
   },
   {
     code: "Q-030",
@@ -391,7 +359,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "blocker",
     defaultAssumption:
       "Проверяет ваш сотрудник, срок ответа — три рабочих дня. Школа сама меняет описание и контакты; изменение цены, набора и документов сбрасывает статус на «заявлено» до повторной проверки.",
-    dueInDays: 7,
   },
   {
     code: "Q-031",
@@ -403,7 +370,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "blocker",
     defaultAssumption:
       "Статус присваивает редакция по документам: учебный план плюс подтверждение подготовки педагогов. Понижение возможно при повторной проверке, школа уведомляется за неделю.",
-    dueInDays: 7,
   },
   {
     code: "Q-032",
@@ -415,7 +381,6 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "important",
     defaultAssumption:
       "Территория — радиус 3 км для семейного класса и 7 км для школы, эксклюзивность на срок договора, при закрытии точки освобождается через 90 дней.",
-    dueInDays: 10,
   },
   {
     code: "Q-033",
@@ -427,6 +392,5 @@ export const SEED_QUESTIONS: SeedQuestion[] = [
     priority: "important",
     defaultAssumption:
       "Интеграция с «КОД» в первую версию не входит. Возвращаемся к ней, когда у комплекса появится стабильный API.",
-    dueInDays: 10,
   },
 ];

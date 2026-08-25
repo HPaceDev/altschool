@@ -58,7 +58,7 @@ export default async function NewQuestionPage() {
               </Field>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4">
               <Field label="Важность" hint={priorityHint.blocker}>
                 <select name="priority" defaultValue="important" className={inputStyles}>
                   {Object.entries(priorityLabel).map(([value, label]) => (
@@ -68,20 +68,16 @@ export default async function NewQuestionPage() {
                   ))}
                 </select>
               </Field>
-
-              <Field label="Ждём ответ до" hint="После этой даты можно применить допущение.">
-                <input type="date" name="answerDueAt" className={inputStyles} />
-              </Field>
             </div>
 
             <Field
               label="Допущение по умолчанию"
-              hint="Что мы сделаем, если ответа не будет в срок. Это защищает обе стороны: проект не стоит, а заказчик заранее знает последствия молчания."
+              hint="Что мы делаем, пока ответа нет. Срока у вопроса нет: ответят — переделаем. Допущение защищает обе стороны: проект не стоит, а заказчик заранее знает, какой вариант окажется в работе."
             >
               <textarea
                 name="defaultAssumption"
                 rows={3}
-                placeholder="Если ответа не будет до 25.08, реализуем вариант A: отмена доступна только администратору. Изменение после этой даты оценивается отдельно."
+                placeholder="Пока ответа нет, реализуем вариант A: отмена доступна только администратору. Переделка после того, как экран сделан, оценивается отдельно."
                 className={inputStyles}
               />
             </Field>

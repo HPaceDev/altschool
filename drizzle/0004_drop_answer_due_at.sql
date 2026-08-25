@@ -1,0 +1,1 @@
+ALTER TABLE "questions" DROP COLUMN "answer_due_at";

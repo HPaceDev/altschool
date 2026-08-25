@@ -3,8 +3,6 @@ import { notFound } from "next/navigation";
 import { canAnswer, canEditProject, getCurrentRole } from "@/lib/roles";
 import { getQuestionByCode } from "@/lib/queries";
 import {
-  describeDeadline,
-  formatDate,
   formatDateTime,
   priorityHint,
   priorityLabel,
@@ -40,10 +38,9 @@ export default async function QuestionPage({ params }: { params: Promise<{ code:
   if (!data) notFound();
 
   const { question, answers, latestAnswer, comments, approvals } = data;
-  const deadline = describeDeadline(question.answerDueAt);
   const isTeam = canEditProject(role);
-  const overdueWithoutAnswer =
-    question.status === "open" && question.answerDueAt && question.answerDueAt < new Date();
+  /** Пока ответа нет, работа идёт по допущению — предложить его зафиксировать. */
+  const waitingWithAssumption = question.status === "open" && Boolean(question.defaultAssumption);
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-8 sm:px-6 sm:py-10">
@@ -77,41 +74,26 @@ export default async function QuestionPage({ params }: { params: Promise<{ code:
         </p>
       </Card>
 
-      {/* Срок и допущение — то, ради чего вопрос вообще заведён именно так. */}
-      {question.defaultAssumption || question.answerDueAt ? (
-        <Card
-          className={`mt-4 px-5 py-4 ${
-            overdueWithoutAnswer
-              ? "border-blocker/30 bg-blocker-soft"
-              : "border-important/30 bg-important-soft"
-          }`}
-        >
-          <p
-            className={`text-sm font-semibold ${
-              overdueWithoutAnswer ? "text-blocker" : "text-important"
-            }`}
-          >
-            {question.answerDueAt
-              ? `Ждём ответ до ${formatDate(question.answerDueAt)}`
-              : "Если ответа не будет"}
-            {deadline && question.status === "open" ? ` — ${deadline.text}` : ""}
+      {/* Допущение — то, ради чего вопрос вообще заведён именно так. */}
+      {question.defaultAssumption ? (
+        <Card className="mt-4 border-important/30 bg-important-soft px-5 py-4">
+          <p className="text-sm font-semibold text-important">
+            Пока ответа нет, мы исходим из этого
           </p>
-          {question.defaultAssumption ? (
-            <p
-              className={`prose-portal mt-2 text-sm ${
-                overdueWithoutAnswer ? "text-blocker" : "text-important"
-              }`}
-            >
-              <span className="font-medium">Что будет без ответа: </span>
-              {question.defaultAssumption}
-            </p>
-          ) : null}
+          <p className="prose-portal mt-2 text-sm text-important">
+            {question.defaultAssumption}
+          </p>
           {question.status === "assumption_applied" ? (
             <p className="mt-2 text-sm font-medium text-blocker">
-              Срок прошёл, этот вариант принят в работу. Изменение после этого момента
-              оценивается отдельно.
+              Этот вариант принят в работу. Ответить всё ещё можно — но переделка после
+              этого момента оценивается отдельно.
             </p>
-          ) : null}
+          ) : (
+            <p className="mt-2 text-sm text-important">
+              Срока у вопроса нет: ответите — переделаем. Чем позже ответ, тем дороже
+              переделка, поэтому важные вопросы лучше не откладывать.
+            </p>
+          )}
         </Card>
       ) : null}
 
@@ -306,17 +288,17 @@ export default async function QuestionPage({ params }: { params: Promise<{ code:
               </Card>
             ) : null}
 
-            {overdueWithoutAnswer && question.defaultAssumption ? (
+            {waitingWithAssumption ? (
               <Card className="border-blocker/30 px-5 py-4">
                 <p className="text-sm text-ink-muted">
-                  Срок ответа вышел. Можно применить допущение по умолчанию — работа
-                  продолжится, а в журнале останется запись, что вариант принят по умолчанию.
+                  Ждать дальше нельзя — можно зафиксировать допущение по умолчанию. Работа
+                  продолжится, а в журнале останется запись, что вариант принят без ответа.
                 </p>
                 <ActionForm
                   action={applyAssumptionAction}
                   submitLabel="Применить допущение"
                   variant="secondary"
-                  confirm="Зафиксировать, что ответа не поступило и действует допущение по умолчанию?"
+                  confirm="Зафиксировать, что ответа пока нет и работа идёт по допущению по умолчанию?"
                 >
                   <input type="hidden" name="questionId" value={question.id} />
                 </ActionForm>

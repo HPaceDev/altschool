@@ -8,7 +8,7 @@ import { recordAudit } from "@/lib/audit";
  * отправляем на нужный экран.
  */
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ role: string }> },
 ) {
   const { role: id } = await params;
@@ -17,6 +17,16 @@ export async function GET(
 
   if (!role) {
     return NextResponse.redirect(new URL("/", base));
+  }
+
+  // Браузеры и роутеры умеют подгружать ссылки заранее. Такой запрос — не
+  // выбор роли: cookie по нему не ставим и в журнал ничего не пишем.
+  const prefetch =
+    request.headers.get("next-router-prefetch") === "1" ||
+    request.headers.get("purpose") === "prefetch" ||
+    request.headers.get("sec-purpose")?.includes("prefetch");
+  if (prefetch) {
+    return new NextResponse(null, { status: 204 });
   }
 
   await recordAudit({

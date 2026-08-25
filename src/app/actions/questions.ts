@@ -254,9 +254,8 @@ export async function applyAssumptionAction(
   if (!question) return fail("Вопрос не найден.");
   if (!question.defaultAssumption)
     return fail("У вопроса не описано допущение по умолчанию — сначала добавьте его.");
-  if (!question.answerDueAt) return fail("У вопроса не задан срок ответа.");
-  if (question.answerDueAt > new Date())
-    return fail(`Срок ответа ещё не вышел (до ${question.answerDueAt.toLocaleDateString("ru-RU")}).`);
+  if (question.status !== "open")
+    return fail("Допущение применяется только к вопросу без ответа.");
 
   await db
     .update(questions)
@@ -270,8 +269,8 @@ export async function applyAssumptionAction(
     entityType: "question",
     entityId: questionId,
     entityCode: question.code,
-    summary: `${question.code}: срок ответа истёк, применено допущение по умолчанию`,
-    payload: { assumption: question.defaultAssumption, dueAt: question.answerDueAt },
+    summary: `${question.code}: ответа нет, работа продолжается по допущению по умолчанию`,
+    payload: { assumption: question.defaultAssumption },
   });
 
   revalidatePath(`/questions/${question.code}`);
@@ -297,7 +296,6 @@ export async function createQuestionAction(
   const priority = String(formData.get("priority") ?? "important");
   const screenRef = String(formData.get("screenRef") ?? "").trim() || null;
   const defaultAssumption = String(formData.get("defaultAssumption") ?? "").trim() || null;
-  const dueRaw = String(formData.get("answerDueAt") ?? "").trim();
 
   if (title.length < 4) return fail("Сформулируйте заголовок вопроса подробнее.");
   if (body.length < 10) return fail("Опишите вопрос так, чтобы он был понятен без встречи.");
@@ -315,7 +313,6 @@ export async function createQuestionAction(
       priority: priority as "blocker" | "important" | "later",
       screenRef,
       defaultAssumption,
-      answerDueAt: dueRaw ? new Date(dueRaw) : null,
     })
     .returning();
 
@@ -327,7 +324,7 @@ export async function createQuestionAction(
     entityId: created.id,
     entityCode: code,
     summary: `${displayName(formData, role.title)} завёл вопрос ${code}: ${title}`,
-    payload: { priority, area, defaultAssumption, answerDueAt: created.answerDueAt },
+    payload: { priority, area, defaultAssumption },
   });
 
   revalidatePath("/questions");

@@ -1,6 +1,6 @@
 import { db, sql } from "./index";
 import { auditLog, questions } from "./schema";
-import { SEED_QUESTIONS, inDays } from "./questions";
+import { SEED_QUESTIONS } from "./questions";
 
 /**
  * Стартовое наполнение портала: участники и первый круг вопросов к заказчику.
@@ -32,7 +32,6 @@ async function main() {
       screenRef: q.screenRef,
       priority: q.priority,
       defaultAssumption: q.defaultAssumption,
-      answerDueAt: inDays(q.dueInDays),
     })),
   );
 

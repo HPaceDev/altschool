@@ -20,7 +20,7 @@ export function QuestionFilters({ areas }: { areas: string[] }) {
   }
 
   const selectClass =
-    "rounded-lg border border-line-strong bg-surface-raised px-2.5 py-1.5 text-sm text-ink focus:border-accent focus:outline-none";
+    "min-h-10 rounded-full border border-line-strong bg-surface px-3.5 text-sm text-ink focus:border-accent focus:outline-none";
 
   const hasFilters = ["status", "priority", "area"].some((key) => params.get(key));
 

@@ -78,10 +78,10 @@ export function FavoriteButton({ slug }: { slug: string }) {
       type="button"
       onClick={() => toggle(slug)}
       aria-pressed={saved}
-      className={`w-full rounded-lg border px-4 py-2 text-sm transition-colors ${
+      className={`flex min-h-11 w-full items-center justify-center rounded-full border px-4 text-sm transition-colors ${
         saved
-          ? "border-accent bg-accent-soft text-accent-text"
-          : "border-line-strong text-ink-muted hover:bg-surface-sunken"
+          ? "border-accent bg-accent-soft font-medium text-accent-text"
+          : "border-line-strong text-ink-muted hover:border-accent hover:text-accent-text"
       }`}
     >
       {ready && saved ? "В избранном" : "В избранное"}

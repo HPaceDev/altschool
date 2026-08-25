@@ -27,11 +27,9 @@ export function PendingWorkspace({
   done?: { name: string; href: string }[];
 }) {
   return (
-    <div className="mx-auto max-w-3xl px-5 py-10 sm:px-6 sm:py-14">
-      <p className="text-xs font-medium tracking-[0.14em] text-ink-faint uppercase">
-        Область в проработке
-      </p>
-      <h1 className="display mt-3 text-2xl text-ink sm:text-3xl">{title}</h1>
+    <div className="mx-auto max-w-3xl px-5 py-12 sm:px-8 sm:py-16">
+      <p className="kicker">Область в проработке</p>
+      <h1 className="display mt-3 text-3xl text-ink sm:text-4xl">{title}</h1>
       <p className="mt-4 max-w-2xl text-base leading-relaxed text-ink-muted">{lead}</p>
 
       {done?.length ? (
@@ -44,7 +42,7 @@ export function PendingWorkspace({
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-done/30 bg-done-soft px-4 py-3 transition-colors hover:border-done/50"
+                  className="flex items-center justify-between gap-3 rounded-2xl border border-accent-line bg-accent-soft px-5 py-3.5 transition-colors hover:border-accent"
                 >
                   <span className="text-sm font-medium text-done">{item.name}</span>
                   <span aria-hidden className="text-done">
@@ -63,7 +61,7 @@ export function PendingWorkspace({
 
       <ul className="mt-5 space-y-4">
         {screens.map((screen) => (
-          <li key={screen.name} className="rounded-xl border border-line bg-surface-raised p-5">
+          <li key={screen.name} className="rounded-2xl border border-line bg-surface-raised p-6">
             <h3 className="display text-base text-ink">{screen.name}</h3>
             <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">{screen.text}</p>
             <Link
@@ -77,7 +75,7 @@ export function PendingWorkspace({
         ))}
       </ul>
 
-      <div className="mt-8 rounded-xl border border-line bg-surface-sunken p-5">
+      <div className="mt-8 rounded-2xl border border-line bg-surface-sunken p-6">
         <p className="text-sm leading-relaxed text-ink-muted">
           Ответьте на перечисленные вопросы — и мы нарисуем эти экраны в следующей
           версии прототипа. До тех пор любой макет здесь был бы нашей догадкой,
@@ -85,7 +83,7 @@ export function PendingWorkspace({
         </p>
         <Link
           href="/questions"
-          className="mt-4 inline-block rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
+          className="mt-5 inline-flex min-h-11 items-center rounded-full bg-accent px-5 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
         >
           Открыть вопросы
         </Link>

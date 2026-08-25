@@ -64,8 +64,8 @@ export default async function ComparePage({
   if (schools.length === 0) {
     return (
       <>
-        <h1 className="display text-xl text-ink">Сравнение</h1>
-        <div className="mt-4 rounded-xl border border-dashed border-line-strong px-6 py-12 text-center">
+        <h1 className="display text-3xl text-ink">Сравнение</h1>
+        <div className="mt-4 rounded-2xl border border-dashed border-line-strong bg-surface-raised px-6 py-14 text-center">
           <p className="font-medium text-ink">Вы пока ничего не выбрали</p>
           <p className="mx-auto mt-1.5 max-w-sm text-sm text-ink-faint">
             В каталоге у каждой школы есть кнопка «Сравнить». Можно выбрать до четырёх
@@ -73,7 +73,7 @@ export default async function ComparePage({
           </p>
           <Link
             href="/prototype/catalog"
-            className="mt-4 inline-block rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
+            className="mt-4 inline-block inline-flex min-h-11 items-center rounded-full bg-accent px-5 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
           >
             Перейти в каталог
           </Link>
@@ -90,7 +90,7 @@ export default async function ComparePage({
   return (
     <>
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <h1 className="display text-xl text-ink">
+        <h1 className="display text-3xl text-ink">
           Сравнение школ
           <span className="ml-2 text-sm font-normal text-ink-faint">
             {schools.length} из 4
@@ -104,7 +104,7 @@ export default async function ComparePage({
         </Link>
       </div>
 
-      <div className="table-scroll mt-4 rounded-xl border border-line bg-surface-raised">
+      <div className="table-scroll mt-6 overflow-hidden rounded-2xl border border-line bg-surface-raised">
         <table className="w-full min-w-max border-collapse text-sm">
           <thead>
             <tr>
@@ -113,7 +113,7 @@ export default async function ComparePage({
               </th>
               {schools.map((school) => (
                 <th key={school.slug} className="border-b border-line p-4 text-left align-bottom">
-                  <Photo school={school} className="mb-2 h-16 w-full rounded-lg" />
+                  <Photo school={school} className="mb-2.5 h-20 w-full rounded-xl" />
                   <Link
                     href={`/prototype/school/${school.slug}`}
                     className="display block text-sm text-ink hover:text-accent-text"
@@ -170,7 +170,7 @@ export default async function ComparePage({
                 <td key={school.slug} className="px-4 py-3">
                   <Link
                     href={`/prototype/school/${school.slug}`}
-                    className="inline-block rounded-lg bg-accent px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
+                    className="inline-block inline-flex min-h-11 items-center rounded-full bg-accent px-4 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
                   >
                     Открыть
                   </Link>

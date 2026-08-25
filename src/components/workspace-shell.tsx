@@ -46,13 +46,14 @@ export function WorkspaceShell({
 
   return (
     <div className="min-h-screen">
-      <div className="sticky top-0 z-30 flex h-10 items-center gap-3 border-b border-line bg-surface-raised px-3 sm:px-4">
+      {/* Тёмная полоса поверх всего: она же напоминает, что это макет. */}
+      <div className="sticky top-0 z-30 flex h-10 items-center gap-3 bg-deep px-3 text-deep-text sm:px-4">
         <button
           type="button"
           onClick={() => setOpen(true)}
           aria-expanded={open}
           aria-controls="workspace-drawer"
-          className="-ml-1 flex items-center gap-2 rounded-md px-2 py-1 text-sm text-ink-muted transition-colors hover:bg-surface-sunken hover:text-ink"
+          className="-ml-1 flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors hover:bg-deep-raised hover:text-white"
         >
           <span aria-hidden className="flex flex-col gap-[3px]">
             <span className="block h-px w-4 bg-current" />
@@ -62,16 +63,19 @@ export function WorkspaceShell({
           Меню
         </button>
 
-        <span className="h-4 w-px bg-line" aria-hidden />
+        <span className="h-4 w-px bg-white/20" aria-hidden />
 
-        <p className="truncate text-sm text-ink-faint">
-          <span className="text-ink-muted">{roleTitle}</span>
-          <span className="hidden sm:inline"> · прототип, версия 0.2</span>
+        <p className="truncate text-sm">
+          <span className="font-medium text-white">{roleTitle}</span>
+          <span className="hidden sm:inline">
+            {" "}
+            · интерактивный прототип, данные демонстрационные
+          </span>
         </p>
 
         <Link
           href="/"
-          className="ml-auto rounded-md px-2 py-1 text-sm text-ink-faint transition-colors hover:bg-surface-sunken hover:text-ink"
+          className="ml-auto rounded-md px-2 py-1 text-sm transition-colors hover:bg-deep-raised hover:text-white"
         >
           Сменить роль
         </Link>
@@ -82,14 +86,14 @@ export function WorkspaceShell({
           type="button"
           aria-label="Закрыть меню"
           onClick={close}
-          className="fixed inset-0 z-40 bg-ink/25"
+          className="fixed inset-0 z-40 bg-deep/35 backdrop-blur-[2px]"
         />
       ) : null}
 
       <aside
         id="workspace-drawer"
         aria-hidden={!open}
-        className={`fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] border-r border-line bg-surface-raised transition-transform duration-200 ${
+        className={`fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] border-r border-line bg-surface shadow-[var(--shadow-lift)] transition-transform duration-200 ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >

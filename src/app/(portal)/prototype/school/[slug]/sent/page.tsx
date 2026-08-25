@@ -21,8 +21,8 @@ export default async function RequestSentPage({
       </div>
       <h1 className="display mt-4 text-2xl text-ink">Заявка отправлена</h1>
 
-      <div className="mx-auto mt-5 flex max-w-sm items-center gap-3 rounded-xl border border-line bg-surface-raised p-3 text-left">
-        <Photo school={school} className="h-12 w-12 shrink-0 rounded-lg" />
+      <div className="mx-auto mt-5 flex max-w-sm items-center gap-3 rounded-2xl border border-line bg-surface-raised p-3 text-left">
+        <Photo school={school} className="h-14 w-14 shrink-0 rounded-xl" />
         <div className="min-w-0">
           <p className="font-medium text-ink">{school.name}</p>
           <p className="text-sm text-ink-muted">
@@ -43,13 +43,13 @@ export default async function RequestSentPage({
       <div className="mt-6 flex flex-wrap justify-center gap-2">
         <Link
           href="/prototype/catalog"
-          className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
+          className="inline-flex min-h-11 items-center rounded-full bg-accent px-5 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
         >
           Смотреть другие школы
         </Link>
         <Link
           href="/prototype/favorites"
-          className="rounded-lg border border-line-strong px-4 py-2 text-sm text-ink transition-colors hover:bg-surface-sunken"
+          className="inline-flex min-h-11 items-center rounded-full border border-line-strong bg-surface px-5 text-sm text-ink transition-colors hover:border-accent hover:text-accent-text"
         >
           Избранное
         </Link>

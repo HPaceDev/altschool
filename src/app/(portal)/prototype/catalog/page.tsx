@@ -10,7 +10,7 @@ import {
   type RoDepth,
   type SchoolFormat,
 } from "@/lib/prototype-data";
-import { SchoolCard } from "@/components/prototype/parts";
+import { Kicker, SchoolCard } from "@/components/prototype/parts";
 import { plural } from "@/lib/labels";
 
 export const metadata = { title: "Каталог" };
@@ -67,25 +67,39 @@ export default async function CatalogPage({
 
   return (
     <>
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="display text-xl text-ink">Каталог школ</h1>
-          <p className="mt-1 text-sm text-ink-muted">
-            {results.length > 0
-              ? `${plural(results.length, "школа", "школы", "школ")} по вашим условиям`
-              : "Под ваши условия ничего не нашлось"}
-          </p>
-        </div>
+      <div className="mb-8">
+        <p className="mb-4 text-xs text-ink-faint">
+          <Link href="/prototype" className="hover:text-accent-text">
+            Главная
+          </Link>{" "}
+          / Каталог
+        </p>
+        <Kicker>Каталог</Kicker>
+        <h1 className="display mt-3 max-w-2xl text-3xl text-ink sm:text-4xl">
+          Школы развивающего обучения
+        </h1>
+        <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-ink-muted">
+          Фильтры работают прямо в прототипе. Статус данных стоит в каждой карточке:
+          он показывает не качество школы, а то, чем подтверждены её слова.
+        </p>
+      </div>
+
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-line pt-5">
+        <p className="text-sm text-ink-muted">
+          {results.length > 0
+            ? `Найдено: ${plural(results.length, "школа", "школы", "школ")}`
+            : "Под ваши условия ничего не нашлось"}
+        </p>
 
         <div className="flex flex-wrap gap-2">
           {SORTS.map((sort) => (
             <Link
               key={sort.value}
               href={withParam(params, "sort", sort.value)}
-              className={`rounded-lg border px-3 py-1.5 text-sm transition-colors ${
+              className={`inline-flex min-h-9 items-center rounded-full border px-3.5 text-sm transition-colors ${
                 (params.sort ?? "checked") === sort.value
-                  ? "border-accent bg-accent-soft text-accent-text"
-                  : "border-line-strong text-ink-muted hover:bg-surface-sunken"
+                  ? "border-accent bg-accent-soft font-medium text-accent-text"
+                  : "border-line text-ink-muted hover:border-accent hover:text-accent-text"
               }`}
             >
               {sort.label}
@@ -95,19 +109,19 @@ export default async function CatalogPage({
       </div>
 
       {compare.length > 0 ? (
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-accent-line bg-accent-soft px-5 py-3.5">
           <p className="text-sm text-accent-text">К сравнению выбрано: {compare.length} из 4</p>
           <Link
             href={`/prototype/compare?schools=${compare.join(",")}`}
-            className="rounded-lg bg-accent px-3.5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
+            className="inline-flex min-h-10 items-center rounded-full bg-accent px-4 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
           >
             Сравнить
           </Link>
         </div>
       ) : null}
 
-      <div className="grid gap-6 lg:grid-cols-[230px_1fr]">
-        <aside className="space-y-5">
+      <div className="grid gap-8 lg:grid-cols-[236px_1fr]">
+        <aside className="space-y-6 lg:sticky lg:top-32 lg:self-start">
           <FilterGroup title="Статус данных">
             <FilterLink href={withParam(params, "status")} active={!params.status}>
               Любой
@@ -199,30 +213,34 @@ export default async function CatalogPage({
 
         <div>
           {results.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-line-strong px-6 py-12 text-center">
-              <p className="font-medium text-ink">Ничего не нашлось</p>
-              <p className="mx-auto mt-1.5 max-w-md text-sm text-ink-faint">
+            <div className="rounded-2xl border border-dashed border-line-strong bg-surface-raised px-6 py-14 text-center">
+              <span
+                aria-hidden
+                className="mx-auto mb-4 block h-12 w-12 rounded-full border border-line-strong"
+              />
+              <p className="display text-lg text-ink">Ничего не нашлось</p>
+              <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-ink-muted">
                 Попробуйте снять фильтр по статусу данных: проверенных школ пока меньше,
                 чем заявленных. Если школы вашего города нет в каталоге, расскажите нам о
                 ней — мы запросим документы.
               </p>
-              <div className="mt-4 flex flex-wrap justify-center gap-2">
+              <div className="mt-6 flex flex-wrap justify-center gap-2">
                 <Link
                   href="/prototype/catalog"
-                  className="rounded-lg border border-line-strong px-3.5 py-2 text-sm text-ink hover:bg-surface-sunken"
+                  className="inline-flex min-h-11 items-center rounded-full border border-line-strong bg-surface px-4 text-sm text-ink hover:border-accent hover:text-accent-text"
                 >
                   Сбросить фильтры
                 </Link>
                 <Link
                   href="/prototype/add-school"
-                  className="rounded-lg bg-accent px-3.5 py-2 text-sm font-medium text-white hover:bg-accent-hover"
+                  className="inline-flex min-h-11 items-center rounded-full bg-accent px-5 text-sm font-medium text-white hover:bg-accent-hover"
                 >
                   Рассказать о школе
                 </Link>
               </div>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="grid gap-5 sm:grid-cols-2">
               {results.map((school) => (
                 <SchoolCard
                   key={school.slug}
@@ -242,9 +260,7 @@ export default async function CatalogPage({
 function FilterGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h2 className="mb-1.5 text-xs font-semibold tracking-wide text-ink-faint uppercase">
-        {title}
-      </h2>
+      <h2 className="mb-2 text-xs font-semibold tracking-[0.1em] text-ink uppercase">{title}</h2>
       <div className="space-y-0.5">{children}</div>
     </div>
   );
@@ -263,10 +279,10 @@ function FilterLink({
     <Link
       href={href}
       scroll={false}
-      className={`block rounded-md px-2 py-1 text-sm transition-colors ${
+      className={`block rounded-lg px-2.5 py-1.5 text-sm transition-colors ${
         active
           ? "bg-accent-soft font-medium text-accent-text"
-          : "text-ink-muted hover:bg-surface-sunken"
+          : "text-ink-muted hover:bg-surface hover:text-ink"
       }`}
     >
       {children}

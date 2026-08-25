@@ -6,7 +6,7 @@ export const metadata = { title: "Добавить школу" };
 const STEPS = ["Школа", "Практика РО", "Документы", "Готово"];
 
 const input =
-  "w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none";
+  "min-h-11 w-full rounded-xl border border-line-strong bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none";
 
 /**
  * Саморегистрация школы: мастер из четырёх шагов.
@@ -25,7 +25,7 @@ export default async function AddSchoolPage({
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="display text-xl text-ink">Добавить школу в каталог</h1>
+      <h1 className="display text-3xl text-ink">Добавить школу в каталог</h1>
       <p className="mt-1 text-sm leading-relaxed text-ink-muted">
         Размещение бесплатное. Карточка появится сразу со статусом «заявлено школой»,
         а после проверки документов редакция поменяет статус.
@@ -62,7 +62,7 @@ export default async function AddSchoolPage({
         })}
       </ol>
 
-      <div className="mt-6 rounded-xl border border-line bg-surface-raised p-5">
+      <div className="mt-8 rounded-2xl border border-line bg-surface-raised p-6 sm:p-8">
         {step === 1 ? (
           <div className="space-y-4">
             <Field label="Название школы">
@@ -120,7 +120,7 @@ export default async function AddSchoolPage({
 
         {step === 3 ? (
           <div className="space-y-4">
-            <p className="rounded-lg bg-surface-sunken px-4 py-3 text-sm text-ink-muted">
+            <p className="rounded-xl border border-line bg-surface-sunken px-4 py-3.5 text-sm leading-relaxed text-ink-muted">
               Документы нужны, чтобы карточка получила статус «проверено редакцией».
               Без них школа останется в каталоге со статусом «заявлено».
             </p>
@@ -155,7 +155,7 @@ export default async function AddSchoolPage({
             </p>
             <Link
               href="/prototype/catalog?status=claimed"
-              className="mt-5 inline-block rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
+              className="mt-6 inline-flex min-h-11 items-center rounded-full bg-accent px-5 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
             >
               Посмотреть каталог
             </Link>
@@ -167,7 +167,7 @@ export default async function AddSchoolPage({
             {step > 1 ? (
               <Link
                 href={stepHref(step - 1)}
-                className="rounded-lg border border-line-strong px-4 py-2 text-sm text-ink transition-colors hover:bg-surface-sunken"
+                className="inline-flex min-h-11 items-center rounded-full border border-line-strong bg-surface px-5 text-sm text-ink transition-colors hover:border-accent hover:text-accent-text"
               >
                 Назад
               </Link>
@@ -176,7 +176,7 @@ export default async function AddSchoolPage({
             )}
             <Link
               href={stepHref(step + 1)}
-              className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
+              className="inline-flex min-h-11 items-center rounded-full bg-accent px-5 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
             >
               {step === 3 ? "Отправить" : "Далее"}
             </Link>

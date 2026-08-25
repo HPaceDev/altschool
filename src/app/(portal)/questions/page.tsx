@@ -105,7 +105,7 @@ export default async function QuestionsPage({
             <li key={q.id}>
               <Link
                 href={`/questions/${q.code}`}
-                className="block rounded-xl border border-line bg-surface-raised px-4 py-3.5 transition-colors hover:border-line-strong hover:bg-surface"
+                className="block rounded-2xl border border-line bg-surface-raised px-5 py-4 transition-colors hover:border-accent-line hover:bg-surface"
               >
                 <div className="flex flex-wrap items-center gap-2">
                   <Code>{q.code}</Code>

@@ -3,11 +3,11 @@ import type { Tone } from "@/lib/labels";
 
 const toneClasses: Record<Tone, string> = {
   neutral: "bg-surface-sunken text-ink-muted border-line",
-  accent: "bg-accent-soft text-accent-text border-accent/25",
+  accent: "bg-accent-soft text-accent-text border-accent-line",
   blocker: "bg-blocker-soft text-blocker border-blocker/25",
-  important: "bg-important-soft text-important border-important/25",
-  later: "bg-later-soft text-later border-later/20",
-  done: "bg-done-soft text-done border-done/25",
+  important: "bg-important-soft text-important border-warm-line",
+  later: "bg-later-soft text-later border-line",
+  done: "bg-done-soft text-done border-accent-line",
 };
 
 export function Badge({
@@ -22,7 +22,7 @@ export function Badge({
   return (
     <span
       title={title}
-      className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium whitespace-nowrap ${toneClasses[tone]}`}
+      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium whitespace-nowrap ${toneClasses[tone]}`}
     >
       {children}
     </span>
@@ -38,7 +38,7 @@ export function Card({
 }) {
   return (
     <div
-      className={`rounded-xl border border-line bg-surface-raised shadow-[0_1px_2px_rgba(20,24,29,0.04)] ${className}`}
+      className={`rounded-2xl border border-line bg-surface-raised ${className}`}
     >
       {children}
     </div>
@@ -57,8 +57,10 @@ export function PageHeader({
   return (
     <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
       <div className="max-w-2xl">
-        <h1 className="display text-2xl text-ink">{title}</h1>
-        {lead ? <p className="mt-2 text-sm leading-relaxed text-ink-muted">{lead}</p> : null}
+        <h1 className="display text-3xl text-ink">{title}</h1>
+        {lead ? (
+          <p className="mt-3 text-[15px] leading-relaxed text-ink-muted">{lead}</p>
+        ) : null}
       </div>
       {actions ? <div className="flex shrink-0 gap-2">{actions}</div> : null}
     </header>
@@ -67,9 +69,15 @@ export function PageHeader({
 
 export function EmptyState({ title, hint }: { title: string; hint?: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-line-strong px-6 py-12 text-center">
-      <p className="text-sm font-medium text-ink">{title}</p>
-      {hint ? <p className="mx-auto mt-1.5 max-w-md text-sm text-ink-faint">{hint}</p> : null}
+    <div className="rounded-2xl border border-dashed border-line-strong bg-surface-raised px-6 py-14 text-center">
+      <span
+        aria-hidden
+        className="mx-auto mb-4 block h-12 w-12 rounded-full border border-line-strong"
+      />
+      <p className="display text-lg text-ink">{title}</p>
+      {hint ? (
+        <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-ink-muted">{hint}</p>
+      ) : null}
     </div>
   );
 }
@@ -104,20 +112,20 @@ export function Stat({
 
   return (
     <Card className="px-4 py-3.5">
-      <p className="text-xs font-medium tracking-wide text-ink-faint uppercase">{label}</p>
-      <p className={`mt-1.5 text-2xl font-semibold tabular-nums ${valueTone}`}>{value}</p>
+      <p className="text-xs font-semibold tracking-[0.1em] text-ink-faint uppercase">{label}</p>
+      <p className={`display mt-2 text-3xl tabular-nums ${valueTone}`}>{value}</p>
       {hint ? <p className="mt-1 text-xs text-ink-faint">{hint}</p> : null}
     </Card>
   );
 }
 
 const buttonBase =
-  "inline-flex items-center justify-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-55 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
+  "inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full px-5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-55 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
 
 export const buttonStyles = {
   primary: `${buttonBase} bg-accent text-white hover:bg-accent-hover`,
-  secondary: `${buttonBase} border border-line-strong bg-surface-raised text-ink hover:bg-surface-sunken`,
-  quiet: `${buttonBase} text-ink-muted hover:bg-surface-sunken hover:text-ink`,
+  secondary: `${buttonBase} border border-line-strong bg-surface text-ink hover:border-accent hover:text-accent-text`,
+  quiet: `${buttonBase} text-ink-muted hover:bg-surface hover:text-ink`,
 };
 
 export function Field({
@@ -139,7 +147,7 @@ export function Field({
 }
 
 export const inputStyles =
-  "w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20";
+  "w-full min-h-11 rounded-xl border border-line-strong bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20";
 
 export function Section({
   title,
@@ -153,11 +161,13 @@ export function Section({
   actions?: ReactNode;
 }) {
   return (
-    <section className="mb-8">
-      <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+    <section className="mb-10">
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
         <div>
-          <h2 className="display text-base text-ink">{title}</h2>
-          {description ? <p className="mt-1 text-sm text-ink-muted">{description}</p> : null}
+          <h2 className="display text-xl text-ink">{title}</h2>
+          {description ? (
+            <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">{description}</p>
+          ) : null}
         </div>
         {actions}
       </div>

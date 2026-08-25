@@ -1,42 +1,68 @@
 @import "tailwindcss";
 
 /* --------------------------------------------------------------------
- * Токены прототипа.
+ * Оформление прототипа «Карта школ РО».
  *
- * Тема одна — светлая. Выбор школы решение дорогое и волнительное, поэтому
- * палитра спокойная: почти нейтральные серые с еле заметным тёплым уклоном,
- * глубокий приглушённый зелёный как единственный акцент и охра только на
- * рейтингах. Ничего яркого: цвет здесь работает точечно, а не заливкой.
+ * Тема одна — светлая. Основа тёплая, бумажная: выбор школы решение
+ * волнительное, и белый экран с синими кнопками здесь звучит казённо.
+ * Акцент один — глубокий зелёный; охра работает только там, где речь про
+ * деньги и партнёрство. Цвет нигде не заливает экран, он размечает смысл.
+ *
+ * За основу взято оформление прототипа предшественников: тёплый фон,
+ * тёмно-зелёный акцент, крупные скругления, микрозаголовки вразрядку.
+ * Отличия сознательные: шрифты подобраны под кириллицу (Unbounded ломает
+ * длинные русские слова), кегль подписей поднят с 9–10 до 11–12 пикселей,
+ * контраст текста доведён до нормы, а «требует обновления» окрашено не
+ * красным, а охрой — это не ошибка, а возраст данных.
  * ------------------------------------------------------------------ */
 
 :root {
-  --surface: #ffffff;
-  --surface-raised: #ffffff;
-  --surface-sunken: #f5f6f4;
-  --border: #e4e6e3;
-  --border-strong: #cbcfc9;
-  --text: #1b201d;
-  --text-muted: #55605a;
-  --text-faint: #838c87;
+  /* Бумага */
+  --paper: #f4efe6;
+  --surface: #fffdf8;
+  --surface-raised: #fffdf8;
+  --surface-sunken: #ece6d9;
+  --border: #ddd5c6;
+  --border-strong: #c6bda9;
 
-  --accent: #1e6b57;
-  --accent-hover: #17553f;
-  --accent-soft: #e3efe9;
-  --accent-text: #17553f;
+  /* Текст */
+  --text: #18211b;
+  --text-muted: #4f5a53;
+  --text-faint: #7a837c;
 
-  --warm: #b3741a;
+  /* Акцент */
+  --accent: #245f3d;
+  --accent-hover: #1a4a2e;
+  --accent-soft: #e5efe6;
+  --accent-text: #1d5133;
+  --accent-line: #b9d4c1;
 
-  --blocker: #a83b32;
-  --blocker-soft: #fbecea;
-  --important: #8f6011;
-  --important-soft: #fbf2e2;
-  --later: #6a7871;
-  --later-soft: #f0f1ef;
-  --done: #2b6e4b;
-  --done-soft: #e4f1e9;
+  /* Второй акцент: деньги, франшизы, партнёрство */
+  --warm: #8a6434;
+  --warm-soft: #f6ecdd;
+  --warm-line: #d8bd9c;
+
+  /* Тёмная подложка: сайдбар, блок цены, финальные призывы */
+  --deep: #11190f;
+  --deep-raised: #1c2a1f;
+  --deep-text: #c7d3ca;
+
+  /* Служебные состояния портала */
+  --blocker: #9d3b32;
+  --blocker-soft: #f7e6e2;
+  --important: #8a6434;
+  --important-soft: #f6ecdd;
+  --later: #63706a;
+  --later-soft: #eeeae0;
+  --done: #245f3d;
+  --done-soft: #e5efe6;
+
+  --shadow-card: 0 14px 34px rgba(24, 43, 30, 0.08);
+  --shadow-lift: 0 20px 48px rgba(24, 43, 30, 0.12);
 }
 
 @theme inline {
+  --color-paper: var(--paper);
   --color-surface: var(--surface);
   --color-surface-raised: var(--surface-raised);
   --color-surface-sunken: var(--surface-sunken);
@@ -49,7 +75,13 @@
   --color-accent-hover: var(--accent-hover);
   --color-accent-soft: var(--accent-soft);
   --color-accent-text: var(--accent-text);
+  --color-accent-line: var(--accent-line);
   --color-warm: var(--warm);
+  --color-warm-soft: var(--warm-soft);
+  --color-warm-line: var(--warm-line);
+  --color-deep: var(--deep);
+  --color-deep-raised: var(--deep-raised);
+  --color-deep-text: var(--deep-text);
   --color-blocker: var(--blocker);
   --color-blocker-soft: var(--blocker-soft);
   --color-important: var(--important);
@@ -58,30 +90,78 @@
   --color-later-soft: var(--later-soft);
   --color-done: var(--done);
   --color-done-soft: var(--done-soft);
-  --font-sans: var(--font-golos), ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+  --shadow-card: var(--shadow-card);
+  --shadow-lift: var(--shadow-lift);
+  --font-sans:
+    var(--font-golos), ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
   --font-serif: var(--font-literata), Georgia, "Times New Roman", serif;
 }
 
 body {
-  background: var(--surface-sunken);
+  background: var(--paper);
   color: var(--text);
-  font-family: var(--font-golos), ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+  font-family:
+    var(--font-golos), ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Заголовки набраны шрифтом с засечками: он спокойнее и «книжнее», чем
-   интерфейсный, и сразу отличает содержание от органов управления. */
+/* Едва различимая сетка на фоне: бумага перестаёт быть плоской заливкой,
+   но не спорит с содержанием — к середине экрана она сходит на нет. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image:
+    linear-gradient(rgba(36, 95, 61, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(36, 95, 61, 0.05) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(to bottom, #000, transparent 65%);
+}
+
+body > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Заголовки набраны шрифтом с засечками: он спокойнее и «книжнее»
+   интерфейсного и сразу отличает содержание от органов управления. */
 .display {
   font-family: var(--font-literata), Georgia, "Times New Roman", serif;
   font-weight: 600;
-  letter-spacing: -0.012em;
+  letter-spacing: -0.018em;
+  line-height: 1.14;
   text-wrap: balance;
+}
+
+/* Микрозаголовок над разделом: короткое слово вразрядку с чертой слева.
+   Заменяет лишний подзаголовок и держит ритм длинных страниц. */
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+}
+
+.kicker::before {
+  content: "";
+  width: 1.5rem;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.6;
 }
 
 /* Пользовательский текст: ответы, описания школ. */
 .prose-portal {
   white-space: pre-wrap;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  hyphens: auto;
   line-height: 1.65;
 }
 
@@ -95,6 +175,20 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* Карточка, на которую можно нажать: приподнимается под курсором. */
+.liftable {
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
+}
+
+.liftable:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lift);
+  border-color: var(--accent-line);
+}
+
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
@@ -106,5 +200,9 @@ body {
   *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .liftable:hover {
+    transform: none;
   }
 }

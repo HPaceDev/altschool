@@ -39,7 +39,7 @@ const guestCtx = await browser.newContext({ viewport: { width: 1280, height: 900
 const guest = await guestCtx.newPage();
 await guest.goto(BASE);
 check("стартовый экран открывается без пароля", (await guest.title()).includes("Выбор роли"));
-check("на экране пять ролей", (await guest.locator("a[href^='/enter/']").count()) === 5);
+check("на экране семь ролей", (await guest.locator("a[href^='/enter/']").count()) === 7);
 check("нет формы входа", (await guest.locator('input[type="password"], input[name="email"]').count()) === 0);
 await guest.screenshot({ path: `${SHOT}/01-roles.png`, fullPage: true });
 
@@ -66,16 +66,45 @@ check("меню закрывается по Escape", (await drawer.getAttribute(
 
 for (const [path, name] of [
   ["/prototype/catalog", "каталог"],
-  ["/prototype/school/pyatoe-izmerenie", "карточка школы"],
-  ["/prototype/compare?schools=pyatoe-izmerenie,tochka-rosta", "сравнение"],
-  ["/prototype/request?school=pyatoe-izmerenie&step=2", "заявка"],
-  ["/prototype/cabinet", "мои заявки"],
+  ["/prototype/map", "карта покрытия"],
+  ["/prototype/school/atlas", "карточка школы"],
+  ["/prototype/school/atlas/sent", "заявка отправлена"],
+  ["/prototype/compare?schools=atlas,dialog,krug", "сравнение"],
+  ["/prototype/favorites", "избранное"],
+  ["/prototype/franchises", "витрина франшиз"],
+  ["/prototype/add-school?step=2", "добавить школу"],
   ["/school", "кабинет школы"],
-  ["/admin", "администратор"],
+  ["/franchisee", "кабинет франчайзи"],
+  ["/network", "управляющая компания"],
+  ["/admin", "редакция платформы"],
 ]) {
   const response = await parent.goto(`${BASE}${path}`);
   check(`экран: ${name}`, response.status() === 200, `HTTP ${response.status()}`);
 }
+
+// Проверяемость — суть продукта: статус данных обязан быть виден в каталоге.
+await parent.goto(`${BASE}/prototype/catalog`);
+check(
+  "в каталоге видны статусы проверки",
+  (await parent.getByText("Проверено редакцией").count()) > 0 &&
+    (await parent.getByText("Заявлено школой").count()) > 0,
+);
+await parent.goto(`${BASE}/prototype/catalog?status=verified`);
+// Считаем только карточки: та же подпись есть и в панели фильтров.
+check(
+  "фильтр по статусу оставляет только проверенные",
+  (await parent.locator("article").getByText("Заявлено школой").count()) === 0 &&
+    (await parent.locator("article").count()) > 0,
+);
+
+// У непроверенной школы вместо прочерков должно стоять «нет данных» словами.
+await parent.goto(`${BASE}/prototype/school/dialog`);
+check("нет данных показано словами", (await parent.getByText("Нет данных").count()) > 0);
+
+// У проверенной — источник и дата проверки у каждого факта.
+await parent.goto(`${BASE}/prototype/school/atlas`);
+check("указан источник факта", (await parent.getByText(/источник:/).count()) > 0);
+check("указана дата проверки", (await parent.getByText(/от 10 июля 2026/).count()) > 0);
 
 // Фильтр обязан реально сокращать выдачу, иначе прототип вводит в заблуждение.
 await parent.goto(`${BASE}/prototype/catalog`);
@@ -85,9 +114,7 @@ const cheapCards = await parent.locator("article").count();
 check("фильтр по бюджету сокращает выдачу", cheapCards > 0 && cheapCards < allCards, `${cheapCards} из ${allCards}`);
 await parent.screenshot({ path: `${SHOT}/04-catalog.png`, fullPage: true });
 
-await parent.goto(
-  `${BASE}/prototype/catalog?city=%D0%9A%D0%B0%D0%B7%D0%B0%D0%BD%D1%8C&maxPrice=30000&kind=%D0%9C%D0%B5%D0%B6%D0%B4%D1%83%D0%BD%D0%B0%D1%80%D0%BE%D0%B4%D0%BD%D0%B0%D1%8F%20%D1%88%D0%BA%D0%BE%D0%BB%D0%B0`,
-);
+await parent.goto(`${BASE}/prototype/catalog?region=${encodeURIComponent("Москва")}&roDepth=full`);
 check("пустая выдача объясняет, что делать", await parent.getByText("Ничего не нашлось", { exact: true }).isVisible());
 
 // Родителю нечего делать в вопросах проекта.
@@ -98,7 +125,7 @@ check("родитель не может отвечать", (await parent.locator
 const clientCtx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
 const client = await enterAs(clientCtx, "client", "/questions");
 check("роль заказчика открывает вопросы", client.url() === `${BASE}/questions`);
-check("список вопросов", (await client.locator("a[href^='/questions/Q-']").count()) === 27);
+check("список вопросов", (await client.locator("a[href^='/questions/Q-']").count()) === 33);
 await client.screenshot({ path: `${SHOT}/05-questions.png`, fullPage: true });
 
 await client.goto(`${BASE}/questions/Q-005`);

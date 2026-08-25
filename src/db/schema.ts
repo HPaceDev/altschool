@@ -18,7 +18,15 @@ import {
  * достаточно, чтобы у ответа был автор, и не требует учётных записей.
  * ------------------------------------------------------------------ */
 
-export const roleEnum = pgEnum("role", ["parent", "school", "moderator", "client", "team"]);
+export const roleEnum = pgEnum("role", [
+  "parent",
+  "school",
+  "franchisee",
+  "network",
+  "moderator",
+  "client",
+  "team",
+]);
 
 /* ------------------------------------------------------------------ *
  * Вопросы и ответы — ядро портала

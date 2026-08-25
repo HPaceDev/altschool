@@ -1,10 +1,13 @@
 import Link from "next/link";
 import {
-  CITIES,
+  FACT_STATUS_LABEL,
   FORMAT_LABEL,
-  KINDS,
+  REGIONS,
+  RO_DEPTH_LABEL,
   filterSchools,
+  type FactStatus,
   type Filters,
+  type RoDepth,
   type SchoolFormat,
 } from "@/lib/prototype-data";
 import { SchoolCard } from "@/components/prototype/parts";
@@ -14,7 +17,6 @@ export const metadata = { title: "Каталог" };
 
 type Params = Record<string, string | undefined>;
 
-/** Ссылка, сохраняющая текущие фильтры и меняющая один параметр. */
 function withParam(params: Params, key: string, value?: string): string {
   const next = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) if (v) next.set(k, v);
@@ -28,18 +30,17 @@ function toggleCompare(params: Params, slug: string): string {
   const current = (params.compare ?? "").split(",").filter(Boolean);
   const next = current.includes(slug)
     ? current.filter((s) => s !== slug)
-    : [...current, slug].slice(0, 3);
+    : [...current, slug].slice(0, 4);
   return withParam(params, "compare", next.join(","));
 }
 
 const SORTS = [
-  { value: "rating", label: "По рейтингу" },
+  { value: "checked", label: "Сначала проверенные" },
+  { value: "ro", label: "По глубине РО" },
   { value: "price-asc", label: "Сначала дешевле" },
-  { value: "price-desc", label: "Сначала дороже" },
 ] as const;
 
-const PRICE_STEPS = [30000, 60000, 100000, 200000];
-const AGES = [5, 7, 10, 13, 16];
+const PRICE_STEPS = [0, 30000, 40000, 60000];
 
 export default async function CatalogPage({
   searchParams,
@@ -49,18 +50,20 @@ export default async function CatalogPage({
   const params = await searchParams;
 
   const filters: Filters = {
-    city: params.city,
-    kind: params.kind,
+    region: params.region,
     format: params.format as SchoolFormat | undefined,
-    age: params.age ? Number(params.age) : undefined,
-    maxPrice: params.maxPrice ? Number(params.maxPrice) : undefined,
+    status: params.status as FactStatus | undefined,
+    roDepth: params.roDepth as RoDepth | undefined,
+    maxPrice: params.maxPrice !== undefined ? Number(params.maxPrice) : undefined,
     query: params.query,
-    sort: (params.sort as Filters["sort"]) ?? "rating",
+    sort: (params.sort as Filters["sort"]) ?? "checked",
   };
 
   const results = filterSchools(filters);
   const compare = (params.compare ?? "").split(",").filter(Boolean);
-  const hasFilters = ["city", "kind", "format", "age", "maxPrice", "query"].some((k) => params[k]);
+  const hasFilters = ["region", "format", "status", "roDepth", "maxPrice", "query"].some(
+    (k) => params[k] !== undefined,
+  );
 
   return (
     <>
@@ -79,8 +82,8 @@ export default async function CatalogPage({
             <Link
               key={sort.value}
               href={withParam(params, "sort", sort.value)}
-              className={`rounded-lg border px-3 py-1.5 text-sm ${
-                (params.sort ?? "rating") === sort.value
+              className={`rounded-lg border px-3 py-1.5 text-sm transition-colors ${
+                (params.sort ?? "checked") === sort.value
                   ? "border-accent bg-accent-soft text-accent-text"
                   : "border-line-strong text-ink-muted hover:bg-surface-sunken"
               }`}
@@ -93,47 +96,59 @@ export default async function CatalogPage({
 
       {compare.length > 0 ? (
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3">
-          <p className="text-sm text-accent-text">
-            К сравнению выбрано: {compare.length} из 3
-          </p>
+          <p className="text-sm text-accent-text">К сравнению выбрано: {compare.length} из 4</p>
           <Link
             href={`/prototype/compare?schools=${compare.join(",")}`}
-            className="rounded-lg bg-accent px-3.5 py-1.5 text-sm font-medium text-white hover:bg-accent-hover"
+            className="rounded-lg bg-accent px-3.5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
           >
             Сравнить
           </Link>
         </div>
       ) : null}
 
-      <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
-        {/* Фильтры */}
+      <div className="grid gap-6 lg:grid-cols-[230px_1fr]">
         <aside className="space-y-5">
-          <FilterGroup title="Город">
-            <FilterLink href={withParam(params, "city")} active={!params.city}>
+          <FilterGroup title="Статус данных">
+            <FilterLink href={withParam(params, "status")} active={!params.status}>
               Любой
             </FilterLink>
-            {CITIES.map((city) => (
+            {(["verified", "claimed", "stale"] as FactStatus[]).map((status) => (
               <FilterLink
-                key={city}
-                href={withParam(params, "city", city)}
-                active={params.city === city}
+                key={status}
+                href={withParam(params, "status", status)}
+                active={params.status === status}
               >
-                {city}
+                {FACT_STATUS_LABEL[status]}
               </FilterLink>
             ))}
           </FilterGroup>
 
-          <FilterGroup title="Тип школы">
-            <FilterLink href={withParam(params, "kind")} active={!params.kind}>
-              Любой
+          <FilterGroup title="Глубина РО">
+            <FilterLink href={withParam(params, "roDepth")} active={!params.roDepth}>
+              Любая
             </FilterLink>
-            {KINDS.map((kind) => (
+            {(["full", "primary", "partial", "declared"] as RoDepth[]).map((depth) => (
               <FilterLink
-                key={kind}
-                href={withParam(params, "kind", kind)}
-                active={params.kind === kind}
+                key={depth}
+                href={withParam(params, "roDepth", depth)}
+                active={params.roDepth === depth}
               >
-                {kind}
+                {RO_DEPTH_LABEL[depth]}
+              </FilterLink>
+            ))}
+          </FilterGroup>
+
+          <FilterGroup title="Регион">
+            <FilterLink href={withParam(params, "region")} active={!params.region}>
+              Вся Россия
+            </FilterLink>
+            {REGIONS.map((region) => (
+              <FilterLink
+                key={region}
+                href={withParam(params, "region", region)}
+                active={params.region === region}
+              >
+                {region}
               </FilterLink>
             ))}
           </FilterGroup>
@@ -153,24 +168,9 @@ export default async function CatalogPage({
             ))}
           </FilterGroup>
 
-          <FilterGroup title="Возраст ребёнка">
-            <FilterLink href={withParam(params, "age")} active={!params.age}>
-              Любой
-            </FilterLink>
-            {AGES.map((age) => (
-              <FilterLink
-                key={age}
-                href={withParam(params, "age", String(age))}
-                active={params.age === String(age)}
-              >
-                {age} лет
-              </FilterLink>
-            ))}
-          </FilterGroup>
-
-          <FilterGroup title="Бюджет в месяц">
-            <FilterLink href={withParam(params, "maxPrice")} active={!params.maxPrice}>
-              Любой
+          <FilterGroup title="Стоимость в месяц">
+            <FilterLink href={withParam(params, "maxPrice")} active={params.maxPrice === undefined}>
+              Любая
             </FilterLink>
             {PRICE_STEPS.map((price) => (
               <FilterLink
@@ -178,14 +178,18 @@ export default async function CatalogPage({
                 href={withParam(params, "maxPrice", String(price))}
                 active={params.maxPrice === String(price)}
               >
-                до {price.toLocaleString("ru-RU")} ₽
+                {price === 0 ? "Бесплатно" : `до ${price.toLocaleString("ru-RU")} ₽`}
               </FilterLink>
             ))}
           </FilterGroup>
 
           {hasFilters ? (
             <Link
-              href={params.compare ? `/prototype/catalog?compare=${params.compare}` : "/prototype/catalog"}
+              href={
+                params.compare
+                  ? `/prototype/catalog?compare=${params.compare}`
+                  : "/prototype/catalog"
+              }
               className="block text-sm text-accent-text underline underline-offset-2"
             >
               Сбросить фильтры
@@ -193,21 +197,29 @@ export default async function CatalogPage({
           ) : null}
         </aside>
 
-        {/* Результаты */}
         <div>
           {results.length === 0 ? (
             <div className="rounded-xl border border-dashed border-line-strong px-6 py-12 text-center">
               <p className="font-medium text-ink">Ничего не нашлось</p>
-              <p className="mx-auto mt-1.5 max-w-sm text-sm text-ink-faint">
-                Попробуйте расширить бюджет или убрать фильтр по типу школы. Если школы
-                вашего района ещё нет в каталоге, оставьте заявку — мы поищем вручную.
+              <p className="mx-auto mt-1.5 max-w-md text-sm text-ink-faint">
+                Попробуйте снять фильтр по статусу данных: проверенных школ пока меньше,
+                чем заявленных. Если школы вашего города нет в каталоге, расскажите нам о
+                ней — мы запросим документы.
               </p>
-              <Link
-                href="/prototype/catalog"
-                className="mt-4 inline-block rounded-lg border border-line-strong px-3.5 py-2 text-sm text-ink hover:bg-surface-sunken"
-              >
-                Сбросить фильтры
-              </Link>
+              <div className="mt-4 flex flex-wrap justify-center gap-2">
+                <Link
+                  href="/prototype/catalog"
+                  className="rounded-lg border border-line-strong px-3.5 py-2 text-sm text-ink hover:bg-surface-sunken"
+                >
+                  Сбросить фильтры
+                </Link>
+                <Link
+                  href="/prototype/add-school"
+                  className="rounded-lg bg-accent px-3.5 py-2 text-sm font-medium text-white hover:bg-accent-hover"
+                >
+                  Рассказать о школе
+                </Link>
+              </div>
             </div>
           ) : (
             <div className="space-y-3">
@@ -252,7 +264,9 @@ function FilterLink({
       href={href}
       scroll={false}
       className={`block rounded-md px-2 py-1 text-sm transition-colors ${
-        active ? "bg-accent-soft font-medium text-accent-text" : "text-ink-muted hover:bg-surface-sunken"
+        active
+          ? "bg-accent-soft font-medium text-accent-text"
+          : "text-ink-muted hover:bg-surface-sunken"
       }`}
     >
       {children}

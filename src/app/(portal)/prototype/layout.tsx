@@ -11,8 +11,8 @@ export default function PrototypeLayout({ children }: { children: React.ReactNod
       <header className="border-b border-line bg-surface-raised">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-5 py-3.5 sm:px-6">
           <Link href="/prototype" className="flex items-baseline gap-2">
-            <span className="display text-lg text-ink">АльтШкола</span>
-            <span className="text-xs text-ink-faint">школы, где хорошо</span>
+            <span className="display text-lg text-ink">Карта школ РО</span>
+            <span className="hidden text-xs text-ink-faint sm:inline">развивающее обучение по России</span>
           </Link>
 
           <ProtoNav />

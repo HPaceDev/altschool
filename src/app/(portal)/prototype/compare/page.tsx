@@ -1,33 +1,51 @@
 import Link from "next/link";
 import {
   FORMAT_LABEL,
-  ageRange,
+  RO_DEPTH_LABEL,
   findSchool,
   formatPrice,
+  type Fact,
   type School,
 } from "@/lib/prototype-data";
-import { Photo, Rating } from "@/components/prototype/parts";
+import { Photo, StatusBadge } from "@/components/prototype/parts";
 
 export const metadata = { title: "Сравнение" };
 
-const ROWS: { label: string; value: (s: School) => string }[] = [
-  { label: "Тип", value: (s) => s.kind },
-  { label: "Формат", value: (s) => FORMAT_LABEL[s.format] },
-  { label: "Город", value: (s) => `${s.city}${s.district !== "Вся Россия" ? `, ${s.district}` : ""}` },
-  { label: "Возраст", value: (s) => ageRange(s) },
-  { label: "Стоимость в месяц", value: (s) => formatPrice(s.pricePerMonth) },
-  { label: "Вступительный взнос", value: (s) => (s.admissionFee ? formatPrice(s.admissionFee) : "нет") },
-  { label: "Человек в классе", value: (s) => `до ${s.classSize}` },
-  { label: "Языки", value: (s) => s.languages.join(", ") },
-  { label: "Лицензия", value: (s) => (s.hasLicence ? "есть" : "нет") },
-  { label: "Детский сад", value: (s) => (s.hasKindergarten ? "есть" : "нет") },
-  { label: "Расписание", value: (s) => s.schedule },
+/** Строка сравнения. Возвращает факт, чтобы показать статус рядом со значением. */
+const ROWS: { label: string; value: (s: School) => Fact }[] = [
   {
-    label: "Набор",
-    value: (s) =>
-      s.admissionOpen ? (s.seatsLeft ? `открыт, мест: ${s.seatsLeft}` : "открыт") : "закрыт",
+    label: "Статус данных",
+    value: (s) => ({ value: `проверено ${s.checkedOn}`, status: s.status }),
   },
-  { label: "Что входит", value: (s) => s.features.join(", ") },
+  {
+    label: "Глубина РО",
+    value: (s) => ({ value: RO_DEPTH_LABEL[s.roDepth], status: s.status }),
+  },
+  {
+    label: "Формат",
+    value: (s) => ({ value: FORMAT_LABEL[s.format], status: "verified" }),
+  },
+  {
+    label: "Город",
+    value: (s) => ({
+      value: `${s.city}${s.district ? `, ${s.district}` : ""}`,
+      status: "verified",
+    }),
+  },
+  { label: "Классы", value: (s) => ({ value: s.grades, status: "verified" }) },
+  {
+    label: "Стоимость в месяц",
+    value: (s) => ({
+      value: formatPrice(s.pricePerMonth),
+      status: s.pricePerMonth === null ? "missing" : s.status,
+    }),
+  },
+  { label: "Лицензия", value: (s) => s.licence },
+  { label: "Аккредитация", value: (s) => s.accreditation },
+  { label: "Учебный план", value: (s) => s.curriculum },
+  { label: "Наполняемость класса", value: (s) => s.classSize },
+  { label: "Педагоги", value: (s) => s.teachers },
+  { label: "Набор", value: (s) => s.admission },
 ];
 
 export default async function ComparePage({
@@ -41,7 +59,7 @@ export default async function ComparePage({
     .filter(Boolean)
     .map(findSchool)
     .filter((s): s is School => Boolean(s))
-    .slice(0, 3);
+    .slice(0, 4);
 
   if (schools.length === 0) {
     return (
@@ -50,12 +68,12 @@ export default async function ComparePage({
         <div className="mt-4 rounded-xl border border-dashed border-line-strong px-6 py-12 text-center">
           <p className="font-medium text-ink">Вы пока ничего не выбрали</p>
           <p className="mx-auto mt-1.5 max-w-sm text-sm text-ink-faint">
-            В каталоге у каждой школы есть кнопка «Сравнить». Можно выбрать до трёх школ
-            и посмотреть их характеристики рядом.
+            В каталоге у каждой школы есть кнопка «Сравнить». Можно выбрать до четырёх
+            школ и посмотреть их рядом — вместе со статусом каждого поля.
           </p>
           <Link
             href="/prototype/catalog"
-            className="mt-4 inline-block rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover"
+            className="mt-4 inline-block rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
           >
             Перейти в каталог
           </Link>
@@ -74,7 +92,9 @@ export default async function ComparePage({
       <div className="flex flex-wrap items-end justify-between gap-3">
         <h1 className="display text-xl text-ink">
           Сравнение школ
-          <span className="ml-2 text-sm font-normal text-ink-faint">{schools.length} из 3</span>
+          <span className="ml-2 text-sm font-normal text-ink-faint">
+            {schools.length} из 4
+          </span>
         </h1>
         <Link
           href="/prototype/catalog"
@@ -88,21 +108,18 @@ export default async function ComparePage({
         <table className="w-full min-w-max border-collapse text-sm">
           <thead>
             <tr>
-              <th className="w-44 border-b border-line px-4 py-3 text-left align-bottom text-xs font-semibold tracking-wide text-ink-faint uppercase">
+              <th className="w-48 border-b border-line px-4 py-3 text-left align-bottom text-xs font-semibold tracking-wide text-ink-faint uppercase">
                 Параметр
               </th>
               {schools.map((school) => (
                 <th key={school.slug} className="border-b border-line p-4 text-left align-bottom">
-                  <Photo school={school} className="mb-2 h-20 w-full rounded-lg" />
+                  <Photo school={school} className="mb-2 h-16 w-full rounded-lg" />
                   <Link
                     href={`/prototype/school/${school.slug}`}
-                    className="block font-semibold text-ink hover:text-accent-text"
+                    className="display block text-sm text-ink hover:text-accent-text"
                   >
                     {school.name}
                   </Link>
-                  <div className="mt-1">
-                    <Rating value={school.rating} count={school.reviewsCount} />
-                  </div>
                   <Link
                     href={removeHref(school.slug)}
                     className="mt-1.5 inline-block text-xs text-ink-faint underline underline-offset-2 hover:text-blocker"
@@ -115,21 +132,33 @@ export default async function ComparePage({
           </thead>
           <tbody>
             {ROWS.map((row) => {
-              const values = schools.map(row.value);
+              const facts = schools.map(row.value);
               // Различия подсвечиваются: ради них сравнение и открывают.
-              const allSame = values.every((v) => v === values[0]);
+              const allSame = facts.every((f) => f.value === facts[0].value);
 
               return (
                 <tr key={row.label} className="border-b border-line last:border-0">
-                  <th className="px-4 py-2.5 text-left font-normal text-ink-faint">{row.label}</th>
-                  {values.map((value, index) => (
-                    <td
-                      key={schools[index].slug}
-                      className={`px-4 py-2.5 align-top ${
-                        allSame ? "text-ink-muted" : "font-medium text-ink"
-                      }`}
-                    >
-                      {value}
+                  <th className="px-4 py-3 text-left align-top font-normal text-ink-faint">
+                    {row.label}
+                  </th>
+                  {facts.map((fact, index) => (
+                    <td key={schools[index].slug} className="px-4 py-3 align-top">
+                      <span
+                        className={`block ${
+                          fact.status === "missing"
+                            ? "text-ink-faint italic"
+                            : allSame
+                              ? "text-ink-muted"
+                              : "font-medium text-ink"
+                        }`}
+                      >
+                        {fact.value}
+                      </span>
+                      {fact.status !== "verified" ? (
+                        <span className="mt-1 inline-block">
+                          <StatusBadge status={fact.status} short />
+                        </span>
+                      ) : null}
                     </td>
                   ))}
                 </tr>
@@ -140,10 +169,10 @@ export default async function ComparePage({
               {schools.map((school) => (
                 <td key={school.slug} className="px-4 py-3">
                   <Link
-                    href={`/prototype/request?school=${school.slug}`}
-                    className="inline-block rounded-lg bg-accent px-3.5 py-2 text-sm font-medium text-white hover:bg-accent-hover"
+                    href={`/prototype/school/${school.slug}`}
+                    className="inline-block rounded-lg bg-accent px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
                   >
-                    Записаться
+                    Открыть
                   </Link>
                 </td>
               ))}
@@ -152,8 +181,9 @@ export default async function ComparePage({
         </table>
       </div>
 
-      <p className="mt-3 text-xs text-ink-faint">
-        Жирным выделены параметры, по которым школы отличаются.
+      <p className="mt-3 text-sm text-ink-faint">
+        Жирным выделено то, чем школы отличаются. Там, где данных нет, так и написано —
+        прочерк скрыл бы разницу между «бесплатно» и «неизвестно».
       </p>
     </>
   );

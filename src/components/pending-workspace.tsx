@@ -18,10 +18,13 @@ export function PendingWorkspace({
   title,
   lead,
   screens,
+  done,
 }: {
   title: string;
   lead: string;
   screens: Screen[];
+  /** Экраны этой области, которые уже нарисованы. */
+  done?: { name: string; href: string }[];
 }) {
   return (
     <div className="mx-auto max-w-3xl px-5 py-10 sm:px-6 sm:py-14">
@@ -30,6 +33,29 @@ export function PendingWorkspace({
       </p>
       <h1 className="display mt-3 text-2xl text-ink sm:text-3xl">{title}</h1>
       <p className="mt-4 max-w-2xl text-base leading-relaxed text-ink-muted">{lead}</p>
+
+      {done?.length ? (
+        <section className="mt-8">
+          <h2 className="border-b border-line pb-3 text-sm font-semibold tracking-wide text-ink-faint uppercase">
+            Уже готово
+          </h2>
+          <ul className="mt-4 space-y-2">
+            {done.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-done/30 bg-done-soft px-4 py-3 transition-colors hover:border-done/50"
+                >
+                  <span className="text-sm font-medium text-done">{item.name}</span>
+                  <span aria-hidden className="text-done">
+                    →
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <h2 className="mt-10 border-b border-line pb-3 text-sm font-semibold tracking-wide text-ink-faint uppercase">
         Что здесь появится

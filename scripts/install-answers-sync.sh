@@ -3,7 +3,7 @@
 # Настраивает автоматическую отправку ответов заказчика с сервера в git.
 #
 # После установки сервер сам раз в десять минут проверяет базу и, если
-# появились новые ответы, отправляет выгрузку в отдельный репозиторий.
+# появились новые ответы, отправляет выгрузку в отдельную ветку репозитория.
 # Пересылать файлы руками больше не нужно.
 #
 # Запуск от root на сервере:
@@ -29,19 +29,30 @@ die() { printf '\n\033[1;31mОшибка:\033[0m %s\n' "$*" >&2; exit 1; }
 # --------------------------------------------------------------------------
 
 ANSWERS_REPO="${ANSWERS_REPO:-}"
+ANSWERS_BRANCH="${ANSWERS_BRANCH:-answers}"
 
+# По умолчанию складываем в тот же репозиторий, откуда развёрнут портал,
+# в отдельную ветку. Адрес берём из origin и переводим в формат SSH:
+# по HTTPS пуш потребовал бы пароль, а ключ работает молча.
 if [ -z "$ANSWERS_REPO" ]; then
-  echo
-  echo "Куда сервер будет складывать ответы заказчика."
-  echo
-  echo "Нужен отдельный репозиторий — заведите его на GitHub пустым."
-  echo "Адрес берите в формате SSH, он выглядит так:"
-  echo "  git@github.com:HPaceDev/altschool-answers.git"
-  echo
-  read -rp "Адрес репозитория: " ANSWERS_REPO
+  ORIGIN="$(git -C "$PORTAL_DIR" remote get-url origin 2>/dev/null || echo '')"
+  case "$ORIGIN" in
+    https://github.com/*)
+      ANSWERS_REPO="git@github.com:${ORIGIN#https://github.com/}"
+      case "$ANSWERS_REPO" in *.git) ;; *) ANSWERS_REPO="$ANSWERS_REPO.git" ;; esac
+      ;;
+    *) ANSWERS_REPO="$ORIGIN" ;;
+  esac
 fi
 
-[ -n "$ANSWERS_REPO" ] || die "Без адреса репозитория настраивать нечего."
+[ -n "$ANSWERS_REPO" ] || die "Не удалось определить репозиторий. Укажите его: ANSWERS_REPO=… bash …"
+
+echo
+echo "Ответы будут уходить сюда:"
+echo "  репозиторий: $ANSWERS_REPO"
+echo "  ветка:       $ANSWERS_BRANCH"
+echo
+echo "Ветка отдельная, кода в ней нет — только выгрузка ответов."
 
 # --------------------------------------------------------------------------
 # Ключ доступа
@@ -71,7 +82,7 @@ cat > "$CONFIG" <<EOF
 # Создан scripts/install-answers-sync.sh
 PORTAL_DIR=$PORTAL_DIR
 ANSWERS_REPO=$ANSWERS_REPO
-ANSWERS_BRANCH=${ANSWERS_BRANCH:-main}
+ANSWERS_BRANCH=$ANSWERS_BRANCH
 ANSWERS_DIR=${ANSWERS_DIR:-/var/lib/portal-answers}
 ANSWERS_PATH=${ANSWERS_PATH:-answers}
 EOF
@@ -127,10 +138,12 @@ fi
 if [ "$NEED_KEY" = "1" ]; then
   echo
   echo "──────────────────────────────────────────────────────────────"
-  echo "Остался один шаг. Добавьте этот ключ в репозиторий с ответами:"
+  echo "Остался один шаг. Добавьте этот ключ в репозиторий:"
   echo
-  echo "  GitHub → репозиторий → Settings → Deploy keys → Add deploy key"
+  echo "  GitHub → Settings → Deploy keys → Add deploy key"
   echo "  Обязательно отметьте «Allow write access»."
+  echo
+  echo "  Ключ выпущен для этого сервера и отзывается той же кнопкой."
   echo
   cat "$KEY.pub"
   echo

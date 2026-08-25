@@ -26,7 +26,9 @@ fi
 
 PORTAL_DIR="${PORTAL_DIR:-/opt/portal}"
 ANSWERS_DIR="${ANSWERS_DIR:-/var/lib/portal-answers}"
-ANSWERS_BRANCH="${ANSWERS_BRANCH:-main}"
+# Отдельная ветка только под выгрузку: кода в ней нет, с main она не
+# пересекается и сливать её с ним не нужно.
+ANSWERS_BRANCH="${ANSWERS_BRANCH:-answers}"
 ANSWERS_PATH="${ANSWERS_PATH:-answers}"
 SSH_KEY="${ANSWERS_SSH_KEY:-}"
 

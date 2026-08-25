@@ -73,7 +73,9 @@ git_answers remote set-url origin "$ANSWERS_REPO"
 
 # Сервер — единственный, кто пишет эти файлы, поэтому расхождений быть не
 # может: просто встаём на состояние ветки, если она уже есть.
+REMOTE_HEAD=""
 if git_answers fetch -q origin "$ANSWERS_BRANCH" 2>/dev/null; then
+  REMOTE_HEAD="$(git_answers rev-parse FETCH_HEAD)"
   git_answers checkout -q -B "$ANSWERS_BRANCH" FETCH_HEAD
 else
   git_answers checkout -q -B "$ANSWERS_BRANCH"
@@ -86,17 +88,46 @@ cp "$TMP/otvety.json" "$ANSWERS_DIR/$ANSWERS_PATH/otvety.json"
 
 git_answers add -A "$ANSWERS_PATH"
 
-if git_answers diff --cached --quiet; then
-  echo "Новых ответов нет."
-  exit 0
-fi
-
 ANSWERED="$(grep -o '"answered": *[0-9]*' "$TMP/otvety.json" | head -1 | tr -dc '0-9')"
 TOTAL="$(grep -o '"questionsTotal": *[0-9]*' "$TMP/otvety.json" | head -1 | tr -dc '0-9')"
 
-git_answers commit -q \
-  -m "Ответы заказчика: ${ANSWERED:-0} из ${TOTAL:-?} вопросов" \
-  -m "Выгружено автоматически $(date '+%d.%m.%Y %H:%M %Z')."
-git_answers push -q -u origin "$ANSWERS_BRANCH"
+if git_answers diff --cached --quiet; then
+  NEW_ANSWERS=0
+else
+  NEW_ANSWERS=1
+  git_answers commit -q \
+    -m "Ответы заказчика: ${ANSWERED:-0} из ${TOTAL:-?} вопросов" \
+    -m "Выгружено автоматически $(date '+%d.%m.%Y %H:%M %Z')."
+fi
 
-echo "Отправлено: отвечено ${ANSWERED:-0} из ${TOTAL:-?}."
+# --- 4. Отправляем ------------------------------------------------------
+# Отправку решаем по состоянию ветки, а не по изменениям в файлах. Прошлый
+# прогон мог закоммитить локально и не суметь отправить — например, ключ
+# ещё не был добавлен. Тогда выгрузка навсегда осталась бы на сервере,
+# а каждый следующий прогон бодро сообщал бы, что новых ответов нет.
+LOCAL_HEAD="$(git_answers rev-parse HEAD 2>/dev/null || echo '')"
+
+if [ -z "$LOCAL_HEAD" ]; then
+  echo "Отправлять пока нечего: ответов в базе нет."
+  exit 0
+fi
+
+if [ "$LOCAL_HEAD" = "$REMOTE_HEAD" ]; then
+  echo "Новых ответов нет, всё отправлено ранее: отвечено ${ANSWERED:-0} из ${TOTAL:-?}."
+  exit 0
+fi
+
+if git_answers push -q -u origin "$ANSWERS_BRANCH"; then
+  if [ "$NEW_ANSWERS" = "1" ]; then
+    echo "Отправлено: отвечено ${ANSWERED:-0} из ${TOTAL:-?}."
+  else
+    echo "Новых ответов нет, но прошлая выгрузка не была отправлена — отправил сейчас."
+  fi
+else
+  echo >&2
+  echo "Отправить не удалось. Ключ сервера должен быть добавлен в репозиторий" >&2
+  echo "как deploy key именно с правом записи: галочку «Allow write access»" >&2
+  echo "задним числом не поставить — ключ нужно удалить и добавить заново." >&2
+  echo "Выгрузка сохранена, следующий прогон отправит её сам." >&2
+  exit 1
+fi

@@ -4,7 +4,7 @@
 # Домен подставляется из переменной DOMAIN в файле .env.
 
 {$DOMAIN} {
-	reverse_proxy app:3000
+	reverse_proxy portal-app:3000
 
 	encode zstd gzip
 

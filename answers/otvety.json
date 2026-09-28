@@ -31,7 +31,7 @@
             "area": "Наполнение",
             "code": "Q-002",
             "title": "Как будем наполнять каталог школ в ТЗ?",
-            "status": "withdrawn",
+            "status": "open",
             "answers": [
             ],
             "comments": [
@@ -42,7 +42,7 @@
                     "createdAt": "2026-09-15T20:51:48.533477+00:00"
                 }
             ],
-            "priority": "blocker",
+            "priority": "important",
             "approvals": [
             ]
         },
@@ -121,7 +121,7 @@
             "area": "Отзывы",
             "code": "Q-007",
             "title": "Откуда берутся рейтинг и отзывы?",
-            "status": "answered",
+            "status": "accepted",
             "answers": [
                 {
                     "body": "Отзывы у каждой школы будут подтягивать автоматически с яндекс карт и оставлять отзывы на нашем агрегаторе нельзя будет",
@@ -499,7 +499,7 @@
             "area": "Процесс",
             "code": "Q-030",
             "title": "Кто проверяет карточки школ и за какой срок?",
-            "status": "withdrawn",
+            "status": "open",
             "answers": [
             ],
             "comments": [
@@ -510,7 +510,7 @@
                     "createdAt": "2026-09-15T21:35:11.430877+00:00"
                 }
             ],
-            "priority": "blocker",
+            "priority": "important",
             "approvals": [
             ]
         },
@@ -575,7 +575,7 @@
             "area": "Скоуп",
             "code": "Q-034",
             "title": "Включаем ли онлайн-школы в каталог и как их показывать?",
-            "status": "answered",
+            "status": "accepted",
             "answers": [
                 {
                     "body": "Да, будем включать школы онлайн\r\n\r\nОтдельный фильтр нужен\r\n\r\nВсе, что посчитаешь нужны\r\n\r\nДа, все также",
@@ -597,5 +597,5 @@
             ]
         }
     ],
-    "questionsTotal": 34
+    "questionsTotal": 35
 }

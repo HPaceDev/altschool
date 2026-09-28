@@ -42,7 +42,7 @@
                     "createdAt": "2026-09-15T20:51:48.533477+00:00"
                 }
             ],
-            "priority": "important",
+            "priority": "later",
             "approvals": [
             ]
         },
@@ -389,8 +389,8 @@
         {
             "area": "Юридическое",
             "code": "Q-020",
-            "title": "Парсинг школ: чьи это данные и на каком основании мы их публикуем?",
-            "status": "withdrawn",
+            "title": "Какие данные о школах можно брать из внешних источников?",
+            "status": "open",
             "answers": [
             ],
             "comments": [
@@ -401,15 +401,15 @@
                     "createdAt": "2026-09-15T20:59:05.867277+00:00"
                 }
             ],
-            "priority": "blocker",
+            "priority": "later",
             "approvals": [
             ]
         },
         {
             "area": "Юридическое",
             "code": "Q-021",
-            "title": "Обзвон роботом и SMS-приглашения: на каком основании?",
-            "status": "withdrawn",
+            "title": "Нужны ли приглашения школ через SMS и автообзвон?",
+            "status": "open",
             "answers": [
             ],
             "comments": [
@@ -420,7 +420,7 @@
                     "createdAt": "2026-09-15T20:59:35.03129+00:00"
                 }
             ],
-            "priority": "blocker",
+            "priority": "later",
             "approvals": [
             ]
         },
@@ -597,5 +597,5 @@
             ]
         }
     ],
-    "questionsTotal": 35
+    "questionsTotal": 41
 }
